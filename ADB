@@ -1,1 +1,5 @@
 adb shell am broadcast -a com.android.vending.INSTALL_REFERRER -n your.package.name/your.receiver.class --es "referrer" "utm_source=google&utm_medium=cpc&utm_campaign=my_campaign&utm_content=my_ad"
+
+adb shell am broadcast -a com.android.vending.INSTALL_REFERRER \
+    -n com.yourapp.package/com.example.googleplayreferrer.GooglePlayReferrerReceiver \
+    --es "referrer" "https://example.com/referrer"
