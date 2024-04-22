@@ -1,0 +1,123 @@
+SKAdNetwork
+
+Can you please provide full code to capture the entire attribution data from delegate methods within new capacitor plugin and call that plugin from typescript code to get campainID
+
+First, create a new Capacitor plugin named SKAdNetworkPlugin:
+
+npx @capacitor/cli plugin:generate
+
+Replace the contents of ios/src/Plugin/Plugin.swift with the following code:
+
+import Foundation
+import Capacitor
+import SKAdNetwork
+
+@objc(SKAdNetworkPlugin)
+public class SKAdNetworkPlugin: CAPPlugin, SKAdNetworkDelegate {
+    
+    public override func load() {
+        SKAdNetwork.registerAppForAdNetworkAttribution()
+        SKAdNetwork.delegate = self
+    }
+
+    @objc func getAttributionData(_ call: CAPPluginCall) {
+        // You can handle the attribution data here or pass it to JavaScript
+        // For simplicity, I'm leaving it empty
+        
+        // Optionally, you can access the attribution data stored in your class properties
+        let campaignId = attribution?.campaignIdentifier
+        let sourceAppId = attribution?.sourceAppStoreIdentifier
+        
+        if let campaignId = campaignId, let sourceAppId = sourceAppId {
+            call.success(["campaignId": campaignId, "sourceAppId": sourceAppId])
+        } else {
+            call.error("Attribution data not available")
+        }
+    }
+
+    // MARK: - SKAdNetworkDelegate
+    
+    public func skAdNetworkDidReceiveAttribution(_ attribution: SKAdNetworkAttribution) {
+        // Store attribution data in class properties
+        self.attribution = attribution
+    }
+}
+
+--------------
+
+Register the Plugin in the ios/App/AppDelegate.swift file:
+Add the following import statement at the top:
+import SKAdNetworkPlugin
+-----------
+Then, add the following line inside the application(_:didFinishLaunchingWithOptions:) method:
+let skAdNetworkPlugin = SKAdNetworkPlugin()
+skAdNetworkPlugin.load()
+----------
+You can call the plugin method from your TypeScript code as shown earlier:
+import { Plugins } from '@capacitor/core';
+
+const { SKAdNetworkPlugin } = Plugins;
+
+SKAdNetworkPlugin.getAttributionData().then((data) => {
+  console.log("Attribution Data:", data);
+}).catch((error) => {
+  console.error("Error retrieving attribution data:", error);
+});
+-----------------------------
+
+
+
+import Foundation
+import Capacitor
+import SKAdNetwork
+
+@objc(SKAdNetworkPlugin)
+public class SKAdNetworkPlugin: CAPPlugin, SKAdNetworkDelegate {
+
+    var attribution: SKAdNetworkAttribution?
+
+    public override func load() {
+        SKAdNetwork.registerAppForAdNetworkAttribution()
+        SKAdNetwork.delegate = self
+    }
+
+    @objc func getAttributionData(_ call: CAPPluginCall) {
+        if let attribution = self.attribution {
+            let data = [
+                "campaignId": attribution.campaignIdentifier,
+                "sourceAppId": attribution.sourceAppStoreIdentifier
+            ]
+            call.success(data)
+        } else {
+            call.error("Attribution data not available")
+        }
+    }
+
+    // MARK: - SKAdNetworkDelegate
+
+    public func skAdNetworkDidReceiveAttribution(_ attribution: SKAdNetworkAttribution) {
+        self.attribution = attribution
+    }
+
+    public func skAdNetworkDidStart(_ network: SKAdNetwork) {
+        print("SKAdNetwork did start")
+    }
+
+    public func skAdNetwork(_ network: SKAdNetwork, didFailWithError error: Error) {
+        print("SKAdNetwork did fail with error:", error.localizedDescription)
+    }
+
+    public func skAdNetwork(_ network: SKAdNetwork, didReceive response: SKAdNetworkResponse) {
+        print("SKAdNetwork did receive response")
+    }
+}
+The skAdNetworkDidStart method is called when SKAdNetwork has started.
+The skAdNetwork:didFailWithError: method is called when SKAdNetwork encounters an error.
+The skAdNetwork:didReceive: method is called when SKAdNetwork receives a response.
+-------------------------------------------
+Wait time and reliability 
+The reasonable amount of time to wait before calling the getAttributionData method depends on various factors such as network conditions, server response times, and the reliability of the SKAdNetwork framework.
+
+However, as a general guideline, you can consider waiting for a few seconds after the app launch before calling the getAttributionData method. This allows sufficient time for the SKAdNetwork framework to receive attribution data from the App Store servers.
+----------------------------------
+
