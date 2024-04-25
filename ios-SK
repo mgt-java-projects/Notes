@@ -1,0 +1,23 @@
+In iOS, SKAdNetwork attribution data is not directly accessible in the app layer like it is in Android with the Google Play Install Referrer API. Instead, the SKAdNetwork framework provides limited attribution data to the app upon first launch, but this data is handled by the operating system and not directly exposed to the app through delegate methods or APIs.
+
+The attribution data provided by SKAdNetwork typically includes information such as the campaign ID, source app ID, and possibly a conversion value. However, this data is limited and does not include all the parameters that may be present in the original ad link.
+
+So, in summary, while SKAdNetwork does provide some attribution data, it's not as comprehensive or directly accessible as the data provided by the Google Play Install Referrer API on Android. If you need more detailed attribution data or access to additional parameters from the ad link, you may need to explore alternative solutions or third-party attribution providers.
+
+
+SKAdNetwork Framework in iOS:
+SKAdNetwork is Apple's framework for measuring ad attribution on iOS devices.
+It provides limited attribution data to the app upon first launch, such as campaign ID, source app ID, and conversion value.
+This data is handled by the operating system and not directly exposed to the app through delegate methods or APIs.
+The primary purpose of SKAdNetwork is to protect user privacy by limiting the amount of information shared with advertisers and app developers.
+Google Play Install Referrer API in Android:
+Google Play Install Referrer API is Google's solution for tracking ad attribution on Android devices.
+It provides detailed attribution data, including the full referral URL with all parameters, to the app when it is launched.
+App developers can access this data directly within their app code using the Install Referrer API.
+The Install Referrer API allows developers to track various parameters from the ad link, such as campaign ID, source app ID, and any custom parameters included in the URL.
+Key Differences:
+
+Accessibility: SKAdNetwork attribution data is handled by the iOS operating system and is not directly accessible to the app layer. In contrast, the Google Play Install Referrer API provides detailed attribution data directly to the app on Android devices.
+Data Availability: SKAdNetwork provides limited attribution data, mainly for privacy reasons, while the Install Referrer API on Android provides comprehensive attribution data, including all parameters from the ad link.
+Usage: SKAdNetwork is the standard framework for ad attribution on iOS devices, while the Install Referrer API is specific to the Google Play Store ecosystem on Android devices.
+In summary, while both SKAdNetwork and the Install Referrer API serve similar purposes of tracking ad attribution, their implementation and accessibility differ between iOS and Android platforms.
