@@ -1,0 +1,30 @@
+We have a mobile website with links containing information like "ProductSelected=A." Ideally, when someone clicks this link and doesn't have our app, it should take them to the App Store. Then, after downloading and launching the app, we'd like to access the information from the link (in this case, "ProductSelected=A") within the app itself.
+
+
+• Can SKAdNetwork help us capture this information ("ProductSelected=A") from the link after someone downloads the app from the App Store and opens it later?
+• What delegate components within SKAdNetwork provide support for handling URL parameters?
+• If SKAdNetwork can help, can it provide the full link or specific details (like "ProductSelected") directly within our app?
+• Besides SKAdNetwork, are there other built-in features on iOS devices or libraries that might help us capture this information after app download and launch?
+
+• Would using services like Branch.io or Firebase Dynamic Links be a better option for our situation?
+
+
+
+Smart App Banner Limitations (Optional):
+We know Smart App Banners can't be customized much and only work in Safari. Are there any upcoming features planned that might address these limitations?
+
+Given that Apple’s Smart App Banner is limited to Safari and has restricted display customization, are there any other recommended solutions for passing URL parameters to our app from a web context?
+
+• Apart from SKAdNetwork, what other mechanisms or libraries provided by the iOS platform can help us manage URL parameters effectively within our app? How do these alternatives function and compare to SKAdNetwork?
+
+
+
+We have a mobile website where hyperlinks include parameters like ProductSelected=A. When a user clicks on this link, they are redirected to the iOS App Store to download our mobile app. Upon launching the app, we need to retrieve and utilize the ProductSelected parameter details within the app layer. We believe SKAdNetwork might offer a solution to achieve this, but we need clarification on its feasibility and implementation process. Additionally, we are interested in understanding SKAdNetwork delegate components that facilitate URL parameter retrieval in the app layer, or any other iOS platform mechanisms/libraries that can assist.
+
+
+Can SKAdNetwork be utilized to pass and retrieve URL parameters such as ProductSelected from a mobile website into our iOS app after download and launch? If so, how can this be achieved effectively?
+
+What are the necessary steps or best practices to integrate SKAdNetwork for handling URL parameters within our iOS app? Are there specific SDKs or frameworks that need to be integrated alongside SKAdNetwork?
+
+Which delegate components within SKAdNetwork are designed to handle URL parameters or custom data passed from a web context into the app layer? Could you provide examples or documentation on how to implement these components?
+
