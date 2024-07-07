@@ -28,3 +28,17 @@ What are the necessary steps or best practices to integrate SKAdNetwork for hand
 
 Which delegate components within SKAdNetwork are designed to handle URL parameters or custom data passed from a web context into the app layer? Could you provide examples or documentation on how to implement these components?
 
+
+======
+We're developing a user experience where mobile web links contain parameters (e.g., ProductSelected=A). Our goal is to direct users to the App Store if they don't have the app installed and then, upon launching the app, access the parameter value (ProductSelected) within the app layer.
+
+ While we understand SKAdNetwork provides conversion value data, can it be used to capture the specific parameter (e.g., ProductSelected) from the original link within the app layer after download from the App Store?
+
+ If SKAdNetwork can provide some information, do any SKAdNetwork delegate components provide the full URL or specific details (like "ProductSelected") directly within our app layer?
+
+
+
+ If we build an in-house API to transmit product details, what user consent mechanisms are required? Where should this consent be displayed (app or website)?
+
+• understand SKAdNetwork limitations. Can it still capture specific link details (e.g., product ID) within our app (after download)? If not, can we build an in-house API for this purpose?
+User Consent for Data Transfer (if API)? If we build an in-house API to send product details between our website and app, what user consent mechanisms are necessary?
