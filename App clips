@@ -1,4 +1,1 @@
-
-App Clip Limitations: App Clips run in a sandboxed environment with limited access to system resources and functionalities like shared app groups. They cannot directly interact with data stored in the app group container.
-
-Installation Process: Clicking "Install" from the App Clip initiates a separate app installation process. There's no built-in mechanism for the App Clip to write data to the shared app group before installation, and the newly installed app wouldn't have access to any data written by the App Clip.
+HS9JK7JZL9.com.maniyamgt.cdblaunch.demo.parent.ManiyamgtLaunchParent
