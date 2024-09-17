@@ -1,0 +1,50 @@
+import { Injectable } from '@angular/core';
+
+/**
+ * Service to determine the application flow based on the product ID.
+ */
+@Injectable({
+  providedIn: 'root'
+})
+export class FlowDeterminationService {
+  
+  /**
+   * Mapping of product IDs to application flows.
+   */
+  private appFlows = {
+    'CheckingAccount': 'EDB',
+    'CreditCard': 'CC',
+    // Add more product and flow mappings as needed
+  };
+
+  /**
+   * Determines the flow based on the productId.
+   * @param productId The product ID provided to determine the application flow.
+   * @returns The corresponding flow for the given product ID, or 'default' if not found.
+   */
+  determineFlow(productId: string): string {
+    return this.appFlows[productId] || 'default';
+  }
+}
+
+import { FlowDeterminationService } from './flow-determination.service';
+
+describe('FlowDeterminationService', () => {
+  let service: FlowDeterminationService;
+
+  beforeEach(() => {
+    service = new FlowDeterminationService();
+  });
+
+  it('should return EDB for CheckingAccount', () => {
+    expect(service.determineFlow('CheckingAccount')).toBe('EDB');
+  });
+
+  it('should return CC for CreditCard', () => {
+    expect(service.determineFlow('CreditCard')).toBe('CC');
+  });
+
+  it('should return default for unknown productId', () => {
+    expect(service.determineFlow('UnknownProduct')).toBe('default');
+  });
+});
