@@ -1,3 +1,7 @@
+interface AppFlows {
+  [key: string]: any; // Replace `any` with the actual type if known
+}
+
 import { Injectable } from '@angular/core';
 
 /**
@@ -35,6 +39,247 @@ describe('FlowDeterminationService', () => {
   beforeEach(() => {
     service = new FlowDeterminationService();
   });
+
+
+
+------------
+
+import { Injectable } from '@angular/core';
+import { FlowDeterminationService } from './flow-determination.service';
+
+/**
+ * Service to get the list of navigation routes based on the application flow.
+ */
+@Injectable({
+  providedIn: 'root'
+})
+export class FlowBasedNavigationService {
+
+  /**
+   * Mapping of flows to route arrays.
+   */
+  private flowRoutes = {
+    'EDB': [
+      'lets-get-started',
+      'personal-info',
+      'contact-info',
+      'send-otp',
+      'validate-otp',
+      'address-info',
+      'personal-info-review'
+    ],
+    'CC': [
+      'lets-get-started',
+      'personal-info',
+      'contact-info',
+      'validate-otp',
+      'address-info'
+    ]
+  };
+
+  constructor(private flowDeterminationService: FlowDeterminationService) {}
+
+  /**
+   * Returns the list of navigation routes based on the flow derived from productId.
+   * @param productId The product ID used to determine the flow.
+   * @returns An array of route paths.
+   */
+  getNavigationList(productId: string): string[] {
+    const appFlow = this.flowDeterminationService.determineFlow(productId);
+    return this.flowRoutes[appFlow] || [];
+  }
+}
+------------------
+import { FlowBasedNavigationService } from './flow-based-navigation.service';
+import { FlowDeterminationService } from './flow-determination.service';
+
+describe('FlowBasedNavigationService', () => {
+  let service: FlowBasedNavigationService;
+  let flowDeterminationService: FlowDeterminationService;
+
+  beforeEach(() => {
+    flowDeterminationService = new FlowDeterminationService();
+    service = new FlowBasedNavigationService(flowDeterminationService);
+  });
+
+  it('should return EDB flow routes for CheckingAccount', () => {
+    const result = service.getNavigationList('CheckingAccount');
+    expect(result).toEqual([
+      'lets-get-started',
+      'personal-info',
+      'contact-info',
+      'send-otp',
+      'validate-otp',
+      'address-info',
+      'personal-info-review'
+    ]);
+  });
+
+  it('should return CC flow routes for CreditCard', () => {
+    const result = service.getNavigationList('CreditCard');
+    expect(result).toEqual([
+      'lets-get-started',
+      'personal-info',
+      'contact-info',
+      'validate-otp',
+      'address-info'
+    ]);
+  });
+
+  it('should return an empty array for unknown flow', () => {
+    const result = service.getNavigationList('UnknownProduct');
+    expect(result).toEqual([]);
+  });
+});
+--------------------
+import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
+import { Location } from '@angular/common';
+import { FlowBasedNavigationService } from './flow-based-navigation.service';
+
+/**
+ * Service to manage the navigation between pages, including forward and backward navigation.
+ */
+@Injectable({
+  providedIn: 'root'
+})
+export class NavigationService {
+  
+  /**
+   * The current navigation stack, containing the routes for the current flow.
+   */
+  private currentStack: string[] = [];
+
+  /**
+   * The current index of the route in the navigation stack.
+   */
+  private currentIndex: number = 0;
+
+  constructor(
+    private router: Router, 
+    private location: Location, 
+    private flowBasedNavigationService: FlowBasedNavigationService
+  ) {}
+
+  /**
+   * Initializes the navigation stack based on the provided productId.
+   * @param productId The product ID used to determine the navigation flow.
+   */
+  init(productId: string) {
+    this.currentStack = this.flowBasedNavigationService.getNavigationList(productId);
+    this.currentIndex = 0;
+  }
+
+  /**
+   * Navigates to the next route in the stack, if available.
+   */
+  navigateNext() {
+    if (this.currentIndex < this.currentStack.length - 1) {
+      this.currentIndex++;
+      this.navigateTo(this.currentStack[this.currentIndex]);
+    }
+  }
+
+  /**
+   * Navigates to the previous route in the stack, if available.
+   */
+  navigateBack() {
+    if (this.currentIndex > 0) {
+      this.currentIndex--;
+      this.navigateTo(this.currentStack[this.currentIndex]);
+    }
+  }
+
+  /**
+   * Navigates directly to a specific route.
+   * @param path The path to navigate to.
+   * @param queryParams (optional) Any query parameters to include in the navigation.
+   */
+  navigateTo(path: string, queryParams?: any) {
+    this.router.navigate([path], { queryParams });
+  }
+
+  /**
+   * Returns the current route in the stack.
+   * @returns The current route string.
+   */
+  getCurrentRoute(): string {
+    return this.currentStack[this.currentIndex];
+  }
+
+  /**
+   * Returns the next route in the stack, or null if none is available.
+   * @returns The next route string, or null.
+   */
+  getNextRoute(): string | null {
+    if (this.currentIndex < this.currentStack.length - 1) {
+      return this.currentStack[this.currentIndex + 1];
+    }
+    return null;
+  }
+
+  /**
+   * Returns the previous route in the stack, or null if none is available.
+   * @returns The previous route string, or null.
+   */
+  getPreviousRoute(): string | null {
+    if (this.currentIndex > 0) {
+      return this.currentStack[this.currentIndex - 1];
+    }
+    return null;
+  }
+}
+--------------------
+import { NavigationService } from './navigation.service';
+import { Router } from '@angular/router';
+import { Location } from '@angular/common';
+import { FlowBasedNavigationService } from './flow-based-navigation.service';
+import { TestBed } from '@angular/core/testing';
+
+describe('NavigationService', () => {
+  let service: NavigationService;
+  let router: Router;
+  let flowBasedNavigationService: FlowBasedNavigationService;
+
+  beforeEach(() => {
+    const routerSpy = { navigate: jest.fn() };
+    const flowServiceSpy = { getNavigationList: jest.fn() };
+
+    TestBed.configureTestingModule({
+      providers: [
+        NavigationService,
+        { provide: Router, useValue: routerSpy },
+        { provide: FlowBasedNavigationService, useValue: flowServiceSpy }
+      ]
+    });
+
+    service = TestBed.inject(NavigationService);
+    router = TestBed.inject(Router);
+    flowBasedNavigationService = TestBed.inject(FlowBasedNavigationService);
+  });
+
+  it('should initialize the navigation stack correctly', () => {
+    flowBasedNavigationService.getNavigationList = jest.fn().mockReturnValue(['route1', 'route2']);
+    service.init('some-product');
+    expect(service.getCurrentRoute()).toBe('route1');
+  });
+
+  it('should navigate to the next route', () => {
+    flowBasedNavigationService.getNavigationList = jest.fn().mockReturnValue(['route1', 'route2']);
+    service.init('some-product');
+    service.navigateNext();
+    expect(service.getCurrentRoute()).toBe('route2');
+    expect(router.navigate).toHaveBeenCalledWith(['route2']);
+  });
+
+  it('should navigate to the previous route', () => {
+    flowBasedNavigationService.getNavigationList = jest.fn().mockReturnValue(['route1', 'route2']);
+    service.init('some-product');
+    service.navigateNext(); // move to route2
+    service.navigateBack(); // move back to route1
+    expect(service.getCurrentRoute()).toBe('route1');
+    expect(router.navigate).toHaveBeenCalledWith
+
 
   it('should return EDB for CheckingAccount', () => {
     expect(service.determineFlow('CheckingAccount')).toBe('EDB');
