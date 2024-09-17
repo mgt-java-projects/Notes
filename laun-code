@@ -289,8 +289,9 @@ describe('NavigationService', () => {
       getNavigationList: jest.fn(),
     } as any;
 
+    // Mock Document
     mockDocument = {
-      getElementsByTagName: jest.fn().mockReturnValue([{ getAttribute: jest.fn() }]),
+      getElementsByTagName: jest.fn()
     } as any;
 
     TestBed.configureTestingModule({
@@ -309,14 +310,62 @@ describe('NavigationService', () => {
   describe('init', () => {
     it('should set the isMfeMode flag based on baseHref', () => {
       // Test for MFE mode
-      mockDocument.getElementsByTagName = jest.fn().mockReturnValue([{ getAttribute: jest.fn().mockReturnValue('/some-other-path/') }]);
+      mockDocument.getElementsByTagName = jest.fn().mockReturnValue([
+        { getAttribute: jest.fn().mockReturnValue('/some-other-path/') }
+      ]);
       service.init('CheckingAccount');
       expect(service['isMfeMode']).toBe(true);
 
       // Test for standalone mode
-      mockDocument.getElementsByTagName = jest.fn().mockReturnValue([{ getAttribute: jest.fn().mockReturnValue('/launch-openaccount/') }]);
+      mockDocument.getElementsByTagName = jest.fn().mockReturnValue([
+        { getAttribute: jest.fn().mockReturnValue('/launch-openaccount/') }
+      ]);
       service.init('CheckingAccount');
       expect(service['isMfeMode']).toBe(false);
+    });
+  });
+
+  describe('navigateNext', () => {
+    it('should navigate to the next route if available', () => {
+      service['currentStack'] = ['route1', 'route2'];
+      service['currentIndex'] = 0;
+
+      service.navigateNext();
+
+      expect(service['currentIndex']).toBe(1);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['route2'], { queryParams: undefined });
+    });
+
+    it('should not navigate if there is no next route', () => {
+      service['currentStack'] = ['route1'];
+      service['currentIndex'] = 0;
+
+      service.navigateNext();
+
+      expect(service['currentIndex']).toBe(0);
+      expect(mockRouter.navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('navigateBack', () => {
+    it('should navigate to the previous route if available', () => {
+      service['currentStack'] = ['route1', 'route2'];
+      service['currentIndex'] = 1;
+
+      service.navigateBack();
+
+      expect(service['currentIndex']).toBe(0);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['route1'], { queryParams: undefined });
+    });
+
+    it('should not navigate if there is no previous route', () => {
+      service['currentStack'] = ['route1'];
+      service['currentIndex'] = 0;
+
+      service.navigateBack();
+
+      expect(service['currentIndex']).toBe(0);
+      expect(mockRouter.navigate).not.toHaveBeenCalled();
     });
   });
 
@@ -324,7 +373,9 @@ describe('NavigationService', () => {
     it('should navigate using relative path in standalone mode', () => {
       const path = 'personal-info';
       const queryParams = { key: 'value' };
-      mockDocument.getElementsByTagName = jest.fn().mockReturnValue([{ getAttribute: jest.fn().mockReturnValue('/launch-openaccount/') }]);
+      mockDocument.getElementsByTagName = jest.fn().mockReturnValue([
+        { getAttribute: jest.fn().mockReturnValue('/launch-openaccount/') }
+      ]);
       service.init('CheckingAccount');
 
       service.navigateTo(path, queryParams);
@@ -335,7 +386,9 @@ describe('NavigationService', () => {
     it('should navigate using full path with prefix in MFE mode', () => {
       const path = 'personal-info';
       const queryParams = { key: 'value' };
-      mockDocument.getElementsByTagName = jest.fn().mockReturnValue([{ getAttribute: jest.fn().mockReturnValue('/another-path/') }]);
+      mockDocument.getElementsByTagName = jest.fn().mockReturnValue([
+        { getAttribute: jest.fn().mockReturnValue('/another-path/') }
+      ]);
       service.init('CheckingAccount');
 
       service.navigateTo(path, queryParams);
@@ -344,7 +397,53 @@ describe('NavigationService', () => {
     });
   });
 
-  // Other tests...
+  describe('getCurrentRoute', () => {
+    it('should return the current route', () => {
+      service['currentStack'] = ['route1', 'route2'];
+      service['currentIndex'] = 1;
 
+      expect(service.getCurrentRoute()).toBe('route2');
+    });
+
+    it('should return undefined if stack is empty', () => {
+      service['currentStack'] = [];
+      service['currentIndex'] = 0;
+
+      expect(service.getCurrentRoute()).toBeUndefined();
+    });
+  });
+
+  describe('getNextRoute', () => {
+    it('should return the next route if available', () => {
+      service['currentStack'] = ['route1', 'route2'];
+      service['currentIndex'] = 0;
+
+      expect(service.getNextRoute()).toBe('route2');
+    });
+
+    it('should return null if there is no next route', () => {
+      service['currentStack'] = ['route1'];
+      service['currentIndex'] = 0;
+
+      expect(service.getNextRoute()).toBeNull();
+    });
+  });
+
+  describe('getPreviousRoute', () => {
+    it('should return the previous route if available', () => {
+      service['currentStack'] = ['route1', 'route2'];
+      service['currentIndex'] = 1;
+
+      expect(service.getPreviousRoute()).toBe('route1');
+    });
+
+    it('should return null if there is no previous route', () => {
+      service['currentStack'] = ['route1'];
+      service['currentIndex'] = 0;
+
+      expect(service.getPreviousRoute()).toBeNull();
+    });
+  });
 });
+
 
