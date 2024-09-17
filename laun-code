@@ -244,66 +244,155 @@ export class NavigationService {
   }
 }
 --------------------
-import { NavigationService } from './navigation.service';
+import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { FlowBasedNavigationService } from './flow-based-navigation.service';
-import { TestBed } from '@angular/core/testing';
+import { NavigationService } from './navigation.service';
 
 describe('NavigationService', () => {
   let service: NavigationService;
-  let router: Router;
-  let flowBasedNavigationService: FlowBasedNavigationService;
+  let mockRouter: jest.Mocked<Router>;
+  let mockLocation: jest.Mocked<Location>;
+  let mockFlowBasedNavigationService: jest.Mocked<FlowBasedNavigationService>;
 
   beforeEach(() => {
-    const routerSpy = { navigate: jest.fn() };
-    const flowServiceSpy = { getNavigationList: jest.fn() };
+    mockRouter = {
+      navigate: jest.fn(),
+    } as any;
+
+    mockLocation = {
+      back: jest.fn(),
+    } as any;
+
+    mockFlowBasedNavigationService = {
+      getNavigationList: jest.fn(),
+    } as any;
 
     TestBed.configureTestingModule({
       providers: [
         NavigationService,
-        { provide: Router, useValue: routerSpy },
-        { provide: FlowBasedNavigationService, useValue: flowServiceSpy }
-      ]
+        { provide: Router, useValue: mockRouter },
+        { provide: Location, useValue: mockLocation },
+        { provide: FlowBasedNavigationService, useValue: mockFlowBasedNavigationService },
+      ],
     });
 
     service = TestBed.inject(NavigationService);
-    router = TestBed.inject(Router);
-    flowBasedNavigationService = TestBed.inject(FlowBasedNavigationService);
   });
 
-  it('should initialize the navigation stack correctly', () => {
-    flowBasedNavigationService.getNavigationList = jest.fn().mockReturnValue(['route1', 'route2']);
-    service.init('some-product');
-    expect(service.getCurrentRoute()).toBe('route1');
+  it('should be created', () => {
+    expect(service).toBeTruthy();
   });
 
-  it('should navigate to the next route', () => {
-    flowBasedNavigationService.getNavigationList = jest.fn().mockReturnValue(['route1', 'route2']);
-    service.init('some-product');
-    service.navigateNext();
-    expect(service.getCurrentRoute()).toBe('route2');
-    expect(router.navigate).toHaveBeenCalledWith(['route2']);
+  describe('init', () => {
+    it('should initialize the navigation stack and index', () => {
+      const productId = 'CheckingAccount';
+      const navigationList = ['route1', 'route2'];
+      mockFlowBasedNavigationService.getNavigationList.mockReturnValue(navigationList);
+
+      service.init(productId);
+
+      expect(mockFlowBasedNavigationService.getNavigationList).toHaveBeenCalledWith(productId);
+      expect(service['currentStack']).toEqual(navigationList);
+      expect(service['currentIndex']).toBe(0);
+    });
   });
 
-  it('should navigate to the previous route', () => {
-    flowBasedNavigationService.getNavigationList = jest.fn().mockReturnValue(['route1', 'route2']);
-    service.init('some-product');
-    service.navigateNext(); // move to route2
-    service.navigateBack(); // move back to route1
-    expect(service.getCurrentRoute()).toBe('route1');
-    expect(router.navigate).toHaveBeenCalledWith
+  describe('navigateNext', () => {
+    it('should navigate to the next route if available', () => {
+      service['currentStack'] = ['route1', 'route2'];
+      service['currentIndex'] = 0;
 
+      service.navigateNext();
 
-  it('should return EDB for CheckingAccount', () => {
-    expect(service.determineFlow('CheckingAccount')).toBe('EDB');
+      expect(service['currentIndex']).toBe(1);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['route2']);
+    });
+
+    it('should not navigate if there is no next route', () => {
+      service['currentStack'] = ['route1'];
+      service['currentIndex'] = 0;
+
+      service.navigateNext();
+
+      expect(service['currentIndex']).toBe(0);
+      expect(mockRouter.navigate).not.toHaveBeenCalled();
+    });
   });
 
-  it('should return CC for CreditCard', () => {
-    expect(service.determineFlow('CreditCard')).toBe('CC');
+  describe('navigateBack', () => {
+    it('should navigate to the previous route if available', () => {
+      service['currentStack'] = ['route1', 'route2'];
+      service['currentIndex'] = 1;
+
+      service.navigateBack();
+
+      expect(service['currentIndex']).toBe(0);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['route1']);
+    });
+
+    it('should not navigate if there is no previous route', () => {
+      service['currentStack'] = ['route1'];
+      service['currentIndex'] = 0;
+
+      service.navigateBack();
+
+      expect(service['currentIndex']).toBe(0);
+      expect(mockRouter.navigate).not.toHaveBeenCalled();
+    });
   });
 
-  it('should return default for unknown productId', () => {
-    expect(service.determineFlow('UnknownProduct')).toBe('default');
+  describe('navigateTo', () => {
+    it('should navigate to the specified path with optional query parameters', () => {
+      const path = 'some/path';
+      const queryParams = { key: 'value' };
+
+      service.navigateTo(path, queryParams);
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith([path], { queryParams });
+    });
+  });
+
+  describe('getCurrentRoute', () => {
+    it('should return the current route in the stack', () => {
+      service['currentStack'] = ['route1', 'route2'];
+      service['currentIndex'] = 1;
+
+      expect(service.getCurrentRoute()).toBe('route2');
+    });
+  });
+
+  describe('getNextRoute', () => {
+    it('should return the next route if available', () => {
+      service['currentStack'] = ['route1', 'route2'];
+      service['currentIndex'] = 0;
+
+      expect(service.getNextRoute()).toBe('route2');
+    });
+
+    it('should return null if there is no next route', () => {
+      service['currentStack'] = ['route1'];
+      service['currentIndex'] = 0;
+
+      expect(service.getNextRoute()).toBeNull();
+    });
+  });
+
+  describe('getPreviousRoute', () => {
+    it('should return the previous route if available', () => {
+      service['currentStack'] = ['route1', 'route2'];
+      service['currentIndex'] = 1;
+
+      expect(service.getPreviousRoute()).toBe('route1');
+    });
+
+    it('should return null if there is no previous route', () => {
+      service['currentStack'] = ['route1'];
+      service['currentIndex'] = 0;
+
+      expect(service.getPreviousRoute()).toBeNull();
+    });
   });
 });
+
