@@ -31,6 +31,7 @@ export class FlowDeterminationService {
   }
 }
 
+-----------
 import { FlowDeterminationService } from './flow-determination.service';
 
 describe('FlowDeterminationService', () => {
@@ -39,6 +40,19 @@ describe('FlowDeterminationService', () => {
   beforeEach(() => {
     service = new FlowDeterminationService();
   });
+
+  it('should return EDB for CheckingAccount', () => {
+    expect(service.determineFlow('CheckingAccount')).toBe('EDB');
+  });
+
+  it('should return CC for CreditCard', () => {
+    expect(service.determineFlow('CreditCard')).toBe('CC');
+  });
+
+  it('should return default for unknown productId', () => {
+    expect(service.determineFlow('UnknownProduct')).toBe('default');
+  });
+});
 
 
 
