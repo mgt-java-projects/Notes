@@ -1,449 +1,72 @@
-interface AppFlows {
-  [key: string]: any; // Replace `any` with the actual type if known
-}
-
-import { Injectable } from '@angular/core';
-
-/**
- * Service to determine the application flow based on the product ID.
- */
-@Injectable({
-  providedIn: 'root'
-})
-export class FlowDeterminationService {
-  
-  /**
-   * Mapping of product IDs to application flows.
-   */
-  private appFlows = {
-    'CheckingAccount': 'EDB',
-    'CreditCard': 'CC',
-    // Add more product and flow mappings as needed
-  };
-
-  /**
-   * Determines the flow based on the productId.
-   * @param productId The product ID provided to determine the application flow.
-   * @returns The corresponding flow for the given product ID, or 'default' if not found.
-   */
-  determineFlow(productId: string): string {
-    return this.appFlows[productId] || 'default';
-  }
-}
-
------------
-import { FlowDeterminationService } from './flow-determination.service';
-
-describe('FlowDeterminationService', () => {
-  let service: FlowDeterminationService;
-
-  beforeEach(() => {
-    service = new FlowDeterminationService();
-  });
-
-  it('should return EDB for CheckingAccount', () => {
-    expect(service.determineFlow('CheckingAccount')).toBe('EDB');
-  });
-
-  it('should return CC for CreditCard', () => {
-    expect(service.determineFlow('CreditCard')).toBe('CC');
-  });
-
-  it('should return default for unknown productId', () => {
-    expect(service.determineFlow('UnknownProduct')).toBe('default');
-  });
-});
-
-
-
-------------
-
-import { Injectable } from '@angular/core';
-import { FlowDeterminationService } from './flow-determination.service';
-
-/**
- * Service to get the list of navigation routes based on the application flow.
- */
-@Injectable({
-  providedIn: 'root'
-})
-export class FlowBasedNavigationService {
-
-  /**
-   * Mapping of flows to route arrays.
-   */
-  private flowRoutes = {
-    'EDB': [
-      'lets-get-started',
-      'personal-info',
-      'contact-info',
-      'send-otp',
-      'validate-otp',
-      'address-info',
-      'personal-info-review'
-    ],
-    'CC': [
-      'lets-get-started',
-      'personal-info',
-      'contact-info',
-      'validate-otp',
-      'address-info'
-    ]
-  };
-
-  constructor(private flowDeterminationService: FlowDeterminationService) {}
-
-  /**
-   * Returns the list of navigation routes based on the flow derived from productId.
-   * @param productId The product ID used to determine the flow.
-   * @returns An array of route paths.
-   */
-  getNavigationList(productId: string): string[] {
-    const appFlow = this.flowDeterminationService.determineFlow(productId);
-    return this.flowRoutes[appFlow] || [];
-  }
-}
-------------------
-import { FlowBasedNavigationService } from './flow-based-navigation.service';
-import { FlowDeterminationService } from './flow-determination.service';
-
-describe('FlowBasedNavigationService', () => {
-  let service: FlowBasedNavigationService;
-  let flowDeterminationService: FlowDeterminationService;
-
-  beforeEach(() => {
-    flowDeterminationService = new FlowDeterminationService();
-    service = new FlowBasedNavigationService(flowDeterminationService);
-  });
-
-  it('should return EDB flow routes for CheckingAccount', () => {
-    const result = service.getNavigationList('CheckingAccount');
-    expect(result).toEqual([
-      'lets-get-started',
-      'personal-info',
-      'contact-info',
-      'send-otp',
-      'validate-otp',
-      'address-info',
-      'personal-info-review'
-    ]);
-  });
-
-  it('should return CC flow routes for CreditCard', () => {
-    const result = service.getNavigationList('CreditCard');
-    expect(result).toEqual([
-      'lets-get-started',
-      'personal-info',
-      'contact-info',
-      'validate-otp',
-      'address-info'
-    ]);
-  });
-
-  it('should return an empty array for unknown flow', () => {
-    const result = service.getNavigationList('UnknownProduct');
-    expect(result).toEqual([]);
-  });
-});
---------------------
 import { Injectable, Inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { Location } from '@angular/common';
-import { FlowBasedNavigationService } from './flow-based-navigation.service';
 import { DOCUMENT } from '@angular/common';
 
 /**
- * Service to manage the navigation between pages, including forward and backward navigation.
+ * Service to manage application configuration and determine the environment (MFE or standalone).
  */
 @Injectable({
   providedIn: 'root'
 })
-export class NavigationService {
-  
-  /**
-   * The current navigation stack, containing the routes for the current flow.
-   */
-  private currentStack: string[] = [];
+export class AppConfigService {
+  private isMfeMode: boolean;
+
+  constructor(@Inject(DOCUMENT) private document: Document) {
+    this.init();
+  }
 
   /**
-   * The current index of the route in the navigation stack.
+   * Initializes the service by determining if the app is in MFE mode based on the base href.
    */
-  private currentIndex: number = 0;
-
-  /**
-   * Flag to determine if we are in MFE mode.
-   */
-  private isMfeMode: boolean = false;
-
-  constructor(
-    private router: Router, 
-    private location: Location, 
-    private flowBasedNavigationService: FlowBasedNavigationService,
-    @Inject(DOCUMENT) private document: Document
-  ) {}
-
-  /**
-   * Initializes the navigation stack and sets the mode based on the baseHref.
-   * @param productId The product ID used to determine the navigation flow.
-   */
-  init(productId: string) {
-    this.currentStack = this.flowBasedNavigationService.getNavigationList(productId);
-    this.currentIndex = 0;
-
+  private init(): void {
     const baseHref = this.document.getElementsByTagName('base')[0]?.getAttribute('href');
     this.isMfeMode = baseHref !== '/launch-openaccount/';
   }
 
   /**
-   * Navigates to the next route in the stack, if available.
+   * Returns whether the app is running in MFE mode.
+   * @returns A boolean indicating if the app is in MFE mode.
    */
-  navigateNext() {
-    if (this.currentIndex < this.currentStack.length - 1) {
-      this.currentIndex++;
-      this.navigateTo(this.currentStack[this.currentIndex]);
-    }
-  }
-
-  /**
-   * Navigates to the previous route in the stack, if available.
-   */
-  navigateBack() {
-    if (this.currentIndex > 0) {
-      this.currentIndex--;
-      this.navigateTo(this.currentStack[this.currentIndex]);
-    }
-  }
-
-  /**
-   * Navigates directly to a specific route.
-   * @param path The path to navigate to.
-   * @param queryParams (optional) Any query parameters to include in the navigation.
-   */
-  navigateTo(path: string, queryParams?: any) {
-    if (this.isMfeMode) {
-      // MFE mode: use full path with 'launch-openaccount'
-      this.router.navigate(['/launch-openaccount', path], { queryParams });
-    } else {
-      // Standalone mode: relative path is enough
-      this.router.navigate([path], { queryParams });
-    }
-  }
-
-  /**
-   * Returns the current route in the stack.
-   * @returns The current route string.
-   */
-  getCurrentRoute(): string {
-    return this.currentStack[this.currentIndex];
-  }
-
-  /**
-   * Returns the next route in the stack, or null if none is available.
-   * @returns The next route string, or null.
-   */
-  getNextRoute(): string | null {
-    if (this.currentIndex < this.currentStack.length - 1) {
-      return this.currentStack[this.currentIndex + 1];
-    }
-    return null;
-  }
-
-  /**
-   * Returns the previous route in the stack, or null if none is available.
-   * @returns The previous route string, or null.
-   */
-  getPreviousRoute(): string | null {
-    if (this.currentIndex > 0) {
-      return this.currentStack[this.currentIndex - 1];
-    }
-    return null;
+  public getIsMfeMode(): boolean {
+    return this.isMfeMode;
   }
 }
-----------------------------
-
-
+-------------------
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
-import { Location } from '@angular/common';
-import { FlowBasedNavigationService } from './flow-based-navigation.service';
-import { NavigationService } from './navigation.service';
+import { AppConfigService } from './app-config.service';
 import { DOCUMENT } from '@angular/common';
 
-describe('NavigationService', () => {
-  let service: NavigationService;
-  let mockRouter: jest.Mocked<Router>;
-  let mockLocation: jest.Mocked<Location>;
-  let mockFlowBasedNavigationService: jest.Mocked<FlowBasedNavigationService>;
+describe('AppConfigService', () => {
+  let service: AppConfigService;
   let mockDocument: Document;
 
   beforeEach(() => {
-    mockRouter = {
-      navigate: jest.fn(),
-    } as any;
-
-    mockLocation = {
-      back: jest.fn(),
-    } as any;
-
-    mockFlowBasedNavigationService = {
-      getNavigationList: jest.fn(),
-    } as any;
-
-    // Mock Document
     mockDocument = {
       getElementsByTagName: jest.fn()
     } as any;
 
     TestBed.configureTestingModule({
       providers: [
-        NavigationService,
-        { provide: Router, useValue: mockRouter },
-        { provide: Location, useValue: mockLocation },
-        { provide: FlowBasedNavigationService, useValue: mockFlowBasedNavigationService },
+        AppConfigService,
         { provide: DOCUMENT, useValue: mockDocument },
       ],
     });
 
-    service = TestBed.inject(NavigationService);
+    service = TestBed.inject(AppConfigService);
   });
 
-  describe('init', () => {
-    it('should set the isMfeMode flag based on baseHref', () => {
-      // Test for MFE mode
-      mockDocument.getElementsByTagName = jest.fn().mockReturnValue([
-        { getAttribute: jest.fn().mockReturnValue('/some-other-path/') }
-      ]);
-      service.init('CheckingAccount');
-      expect(service['isMfeMode']).toBe(true);
+  it('should determine MFE mode based on base href', () => {
+    mockDocument.getElementsByTagName = jest.fn().mockReturnValue([
+      { getAttribute: jest.fn().mockReturnValue('/launch-openaccount/') }
+    ]);
 
-      // Test for standalone mode
-      mockDocument.getElementsByTagName = jest.fn().mockReturnValue([
-        { getAttribute: jest.fn().mockReturnValue('/launch-openaccount/') }
-      ]);
-      service.init('CheckingAccount');
-      expect(service['isMfeMode']).toBe(false);
-    });
-  });
+    service = TestBed.inject(AppConfigService);
+    expect(service.getIsMfeMode()).toBe(false);
 
-  describe('navigateNext', () => {
-    it('should navigate to the next route if available', () => {
-      service['currentStack'] = ['route1', 'route2'];
-      service['currentIndex'] = 0;
+    mockDocument.getElementsByTagName = jest.fn().mockReturnValue([
+      { getAttribute: jest.fn().mockReturnValue('/other-path/') }
+    ]);
 
-      service.navigateNext();
-
-      expect(service['currentIndex']).toBe(1);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['route2'], { queryParams: undefined });
-    });
-
-    it('should not navigate if there is no next route', () => {
-      service['currentStack'] = ['route1'];
-      service['currentIndex'] = 0;
-
-      service.navigateNext();
-
-      expect(service['currentIndex']).toBe(0);
-      expect(mockRouter.navigate).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('navigateBack', () => {
-    it('should navigate to the previous route if available', () => {
-      service['currentStack'] = ['route1', 'route2'];
-      service['currentIndex'] = 1;
-
-      service.navigateBack();
-
-      expect(service['currentIndex']).toBe(0);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['route1'], { queryParams: undefined });
-    });
-
-    it('should not navigate if there is no previous route', () => {
-      service['currentStack'] = ['route1'];
-      service['currentIndex'] = 0;
-
-      service.navigateBack();
-
-      expect(service['currentIndex']).toBe(0);
-      expect(mockRouter.navigate).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('navigateTo', () => {
-    it('should navigate using relative path in standalone mode', () => {
-      const path = 'personal-info';
-      const queryParams = { key: 'value' };
-      mockDocument.getElementsByTagName = jest.fn().mockReturnValue([
-        { getAttribute: jest.fn().mockReturnValue('/launch-openaccount/') }
-      ]);
-      service.init('CheckingAccount');
-
-      service.navigateTo(path, queryParams);
-
-      expect(mockRouter.navigate).toHaveBeenCalledWith([path], { queryParams });
-    });
-
-    it('should navigate using full path with prefix in MFE mode', () => {
-      const path = 'personal-info';
-      const queryParams = { key: 'value' };
-      mockDocument.getElementsByTagName = jest.fn().mockReturnValue([
-        { getAttribute: jest.fn().mockReturnValue('/another-path/') }
-      ]);
-      service.init('CheckingAccount');
-
-      service.navigateTo(path, queryParams);
-
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/launch-openaccount', path], { queryParams });
-    });
-  });
-
-  describe('getCurrentRoute', () => {
-    it('should return the current route', () => {
-      service['currentStack'] = ['route1', 'route2'];
-      service['currentIndex'] = 1;
-
-      expect(service.getCurrentRoute()).toBe('route2');
-    });
-
-    it('should return undefined if stack is empty', () => {
-      service['currentStack'] = [];
-      service['currentIndex'] = 0;
-
-      expect(service.getCurrentRoute()).toBeUndefined();
-    });
-  });
-
-  describe('getNextRoute', () => {
-    it('should return the next route if available', () => {
-      service['currentStack'] = ['route1', 'route2'];
-      service['currentIndex'] = 0;
-
-      expect(service.getNextRoute()).toBe('route2');
-    });
-
-    it('should return null if there is no next route', () => {
-      service['currentStack'] = ['route1'];
-      service['currentIndex'] = 0;
-
-      expect(service.getNextRoute()).toBeNull();
-    });
-  });
-
-  describe('getPreviousRoute', () => {
-    it('should return the previous route if available', () => {
-      service['currentStack'] = ['route1', 'route2'];
-      service['currentIndex'] = 1;
-
-      expect(service.getPreviousRoute()).toBe('route1');
-    });
-
-    it('should return null if there is no previous route', () => {
-      service['currentStack'] = ['route1'];
-      service['currentIndex'] = 0;
-
-      expect(service.getPreviousRoute()).toBeNull();
-    });
+    service = TestBed.inject(AppConfigService);
+    expect(service.getIsMfeMode()).toBe(true);
   });
 });
-
-
