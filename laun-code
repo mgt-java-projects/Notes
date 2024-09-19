@@ -79,3 +79,7 @@ jest.mock('@angular-architects/module-federation', () => ({
  "node_modules/(?!(jest-)?@angular-architects/module-federation/)"
 
   "^@angular-architects/module-federation$": "<rootDir>/path-to-mock"
+
+"transformIgnorePatterns": [
+  "node_modules/(?!.*\\.mjs$|@angular|@angular-architects/module-federation)"
+]
