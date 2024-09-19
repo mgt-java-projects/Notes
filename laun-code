@@ -76,3 +76,5 @@ transformIgnorePatterns: [
   "node_modules/(?!(@angular|angular-architects)/)"
 ]
 
+ "^.+angular-architects/module-federation-runtime.*$": "babel-jest"
+
