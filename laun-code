@@ -72,17 +72,10 @@ describe('AppConfigService', () => {
 });
 
 ------------------
-transformIgnorePatterns: [
-  "node_modules/(?!(@angular|angular-architects)/)"
-]
+jest.mock('@angular-architects/module-federation', () => ({
+  loadRemoteModule: jest.fn(() => Promise.resolve({}))
+}));
 
- "^.+angular-architects/module-federation-runtime.*$": "babel-jest"
+ "node_modules/(?!(jest-)?@angular-architects/module-federation/)"
 
-module.exports = {
-  loadRemoteModule: jest.fn().mockResolvedValue({}),
-};
-
-moduleNameMapper: {
-  '^angular-architects/module-federation-runtime$': '<rootDir>/mocks/angular-architects/module-federation-runtime.js'
-},
-
+  "^@angular-architects/module-federation$": "<rootDir>/path-to-mock"
