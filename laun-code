@@ -70,3 +70,9 @@ describe('AppConfigService', () => {
     expect(service.getIsMfeMode()).toBe(true);
   });
 });
+
+------------------
+transformIgnorePatterns: [
+  "node_modules/(?!(@angular|angular-architects)/)"
+]
+
