@@ -1,0 +1,34 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ResponsiveLayoutComponent } from './responsive-layout.component';
+
+describe('ResponsiveLayoutComponent', () => {
+  let component: ResponsiveLayoutComponent;
+  let fixture: ComponentFixture<ResponsiveLayoutComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [ResponsiveLayoutComponent],
+    }).compileComponents();
+  });
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(ResponsiveLayoutComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create the component', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should adjust the next button when the page is resized', () => {
+    spyOn(component, 'adjustNextButton');
+    window.dispatchEvent(new Event('resize'));
+    expect(component.adjustNextButton).toHaveBeenCalled();
+  });
+
+  it('should adjust next button on load', () => {
+    component.ngOnInit();
+    expect(component.adjustNextButton).toBeTruthy();
+  });
+});
