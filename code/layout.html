@@ -1,0 +1,33 @@
+<div class="container">
+  <!-- Sticky Header -->
+  <header class="header">
+    <h1>Header</h1>
+  </header>
+
+  <!-- Take-over Area -->
+  <div class="take-over-area" id="takeOverArea">
+    <!-- Sticky Progress Bar -->
+    <div class="progress-bar-sec">
+      <div class="progress-bar"></div>
+    </div>
+
+    <!-- Scrollable Page Area Section -->
+    <div class="page-area" id="pageArea">
+      <div class="page-data" id="pageData">
+        <router-outlet></router-outlet>
+        <!-- Dynamic routed content -->
+        <p>Let’s get to know you. Enter your legal name and date of birth.</p>
+        <p>Content Block 1</p>
+      </div>
+
+      <!-- Next Button Section -->
+      <div class="next-button-container" id="nextButtonContainer">
+        <div class="next-button">
+          <button>Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
