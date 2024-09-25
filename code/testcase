@@ -1,18 +1,66 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { PersonalInfoComponent } from './personal-info.component';
+import { NavigationService } from '@app/launchpack/core/services/navigation.service';
 import { LayoutNavigationService } from '@app/launchpack/core/services/navigation/layout-navigation/layout-navigation.service';
-import { of } from 'rxjs';
-import { LayoutActionsEnum } from '@app/launchpack/core/services/navigation/layout-navigation/layout-actions.enum';
-import { jest } from '@jest/globals';  // Ensure Jest is imported
+import { of, Subscription } from 'rxjs';
+import { LayoutActionsEnum } from './layout-actions.enum';
 
-export const MockLayoutNavigationService = (): jest.Mocked<LayoutNavigationService> => {
-  const mockService: Partial<jest.Mocked<LayoutNavigationService>> = {
-    // Mock the layoutActionItem$ observable
-    layoutActionItem$: of(LayoutActionsEnum.INIT),  // Adjust to match expected value
-    // Mock the triggerLayoutAction method
-    triggerLayoutAction: jest.fn(),
-    // Mock the reset method
-    reset: jest.fn(),
-  };
+describe('PersonalInfoComponent', () => {
+  let component: PersonalInfoComponent;
+  let fixture: ComponentFixture<PersonalInfoComponent>;
+  let navigationServiceMock: any;
+  let layoutNavigationServiceMock: any;
 
-  // Return the mockService, cast to jest.Mocked<LayoutNavigationService>
-  return mockService as jest.Mocked<LayoutNavigationService>;
-};
+  beforeEach(() => {
+    navigationServiceMock = {
+      navigateNext: jest.fn(),
+      navigateBack: jest.fn()
+    };
+    
+    layoutNavigationServiceMock = {
+      LayoutActionItems$: of(LayoutActionsEnum.NEXT)
+    };
+
+    TestBed.configureTestingModule({
+      declarations: [PersonalInfoComponent],
+      providers: [
+        { provide: NavigationService, useValue: navigationServiceMock },
+        { provide: LayoutNavigationService, useValue: layoutNavigationServiceMock }
+      ]
+    });
+
+    fixture = TestBed.createComponent(PersonalInfoComponent);
+    component = fixture.componentInstance;
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should subscribe to layoutNavigationService on init', () => {
+    const subscribeSpy = jest.spyOn(layoutNavigationServiceMock.LayoutActionItems$, 'subscribe');
+    component.ngOnInit();
+    expect(subscribeSpy).toHaveBeenCalled();
+  });
+
+  it('should navigate next when action is NEXT', () => {
+    component.onLayoutAction(LayoutActionsEnum.NEXT);
+    expect(navigationServiceMock.navigateNext).toHaveBeenCalled();
+  });
+
+  it('should navigate back when action is BACK', () => {
+    component.onLayoutAction(LayoutActionsEnum.BACK);
+    expect(navigationServiceMock.navigateBack).toHaveBeenCalled();
+  });
+
+  it('should unsubscribe from layoutNavSubscription on destroy', () => {
+    const unsubscribeSpy = jest.spyOn(component.layoutNavSubscription, 'unsubscribe');
+    component.ngOnDestroy();
+    expect(unsubscribeSpy).toHaveBeenCalled();
+  });
+
+  it('should call navigationService.navigateBack when back() is called', () => {
+    component.back();
+    expect(navigationServiceMock.navigateBack).toHaveBeenCalled();
+  });
+});
