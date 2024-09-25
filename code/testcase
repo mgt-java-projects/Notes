@@ -12,21 +12,23 @@ describe('PersonalInfoComponent', () => {
   let layoutNavigationServiceMock: any;
 
   beforeEach(() => {
+    // Mocking the NavigationService
     navigationServiceMock = {
       navigateNext: jest.fn(),
-      navigateBack: jest.fn()
+      navigateBack: jest.fn(),
     };
-    
+
+    // Mocking the LayoutNavigationService with a valid observable
     layoutNavigationServiceMock = {
-      LayoutActionItems$: of(LayoutActionsEnum.NEXT)
+      LayoutActionItems$: of(LayoutActionsEnum.NEXT), // This returns an observable with NEXT action
     };
 
     TestBed.configureTestingModule({
       declarations: [PersonalInfoComponent],
       providers: [
         { provide: NavigationService, useValue: navigationServiceMock },
-        { provide: LayoutNavigationService, useValue: layoutNavigationServiceMock }
-      ]
+        { provide: LayoutNavigationService, useValue: layoutNavigationServiceMock },
+      ],
     });
 
     fixture = TestBed.createComponent(PersonalInfoComponent);
@@ -38,8 +40,13 @@ describe('PersonalInfoComponent', () => {
   });
 
   it('should subscribe to layoutNavigationService on init', () => {
+    // Spy on the observable's subscribe method
     const subscribeSpy = jest.spyOn(layoutNavigationServiceMock.LayoutActionItems$, 'subscribe');
+
+    // Call ngOnInit
     component.ngOnInit();
+
+    // Verify if subscription was made
     expect(subscribeSpy).toHaveBeenCalled();
   });
 
@@ -54,8 +61,16 @@ describe('PersonalInfoComponent', () => {
   });
 
   it('should unsubscribe from layoutNavSubscription on destroy', () => {
+    // Set up a mock subscription object
+    component.layoutNavSubscription = new Subscription();
+    
+    // Spy on the unsubscribe method
     const unsubscribeSpy = jest.spyOn(component.layoutNavSubscription, 'unsubscribe');
+    
+    // Call ngOnDestroy
     component.ngOnDestroy();
+    
+    // Verify if unsubscribe was called
     expect(unsubscribeSpy).toHaveBeenCalled();
   });
 
