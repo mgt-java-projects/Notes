@@ -1,0 +1,18 @@
+import { LayoutNavigationService } from '@app/launchpack/core/services/navigation/layout-navigation/layout-navigation.service';
+import { of } from 'rxjs';
+import { LayoutActionsEnum } from '@app/launchpack/core/services/navigation/layout-navigation/layout-actions.enum';
+import { jest } from '@jest/globals';  // Ensure Jest is imported
+
+export const MockLayoutNavigationService = (): jest.Mocked<LayoutNavigationService> => {
+  const mockService: Partial<jest.Mocked<LayoutNavigationService>> = {
+    // Mock the layoutActionItem$ observable
+    layoutActionItem$: of(LayoutActionsEnum.INIT),  // Adjust to match expected value
+    // Mock the triggerLayoutAction method
+    triggerLayoutAction: jest.fn(),
+    // Mock the reset method
+    reset: jest.fn(),
+  };
+
+  // Return the mockService, cast to jest.Mocked<LayoutNavigationService>
+  return mockService as jest.Mocked<LayoutNavigationService>;
+};
