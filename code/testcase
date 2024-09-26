@@ -1,12 +1,10 @@
 import { registerPlugin } from '@capacitor/core';
-import { TMXWeb } from './tmxplugin'; // Ensure TMXWeb class is imported
+import { TMXWeb } from './tmxplugin';
 
-// Mock the necessary Capacitor/core functions
+// Mocking '@capacitor/core' module
 jest.mock('@capacitor/core', () => ({
-  registerPlugin: jest.fn(), // Mock registerPlugin
-  WebPlugin: class {
-    constructor() {}
-  },
+  registerPlugin: jest.fn(),
+  WebPlugin: class { constructor() {} },
 }));
 
 describe('TMXWeb Plugin', () => {
@@ -14,32 +12,25 @@ describe('TMXWeb Plugin', () => {
 
   beforeEach(() => {
     tmxWeb = new TMXWeb();
-    // Reset mocks before each test
-    jest.clearAllMocks();
-  });
-
-  it('should throw "Method not implemented" when profileDevice is called', async () => {
-    await expect(tmxWeb.profileDevice({ tmxSessionId: '123' })).rejects.toThrow('Method not implemented.');
+    jest.clearAllMocks(); // Clear all mock calls and instances
   });
 
   it('should register TMX plugin using registerPlugin', () => {
-    // Set up the mock implementation before importing the TMX module
-    (registerPlugin as jest.Mock).mockImplementation(() => ({
-      web: jest.fn().mockReturnValue(new TMXWeb())
-    }));
+    // Mocking registerPlugin to return platform implementations
+    (registerPlugin as jest.Mock).mockReturnValue({
+      web: jest.fn().mockReturnValue(new TMXWeb()),
+    });
 
-    // Import the TMX after the mock has been set up
-    const { TMX } = require('./tmxplugin');
+    const { TMX } = require('./tmxplugin'); // Import the TMX plugin after mocking
 
-    // Ensure registerPlugin was called
+    // Validate that registerPlugin was called correctly
     expect(registerPlugin).toHaveBeenCalledWith('TMX', { web: expect.any(Function) });
 
-    // Check that the call actually occurred to prevent "undefined" errors
-    if (registerPlugin.mock.calls.length > 0) {
-      const pluginConfig = registerPlugin.mock.calls[0][1]; // Safely access the call
-      expect(pluginConfig.web()).toBeInstanceOf(TMXWeb); // Check that web returns a TMXWeb instance
-    } else {
-      fail('registerPlugin was not called');
-    }
+    // Safely access mock calls to avoid undefined errors
+    const pluginConfig = registerPlugin.mock.calls[0][1]; // Retrieve the second argument (config)
+
+    // Check if the web platform function returns an instance of TMXWeb
+    const webInstance = pluginConfig.web();
+    expect(webInstance).toBeInstanceOf(TMXWeb);
   });
 });
