@@ -1,81 +1,31 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { PersonalInfoComponent } from './personal-info.component';
-import { NavigationService } from '@app/launchpack/core/services/navigation.service';
-import { LayoutNavigationService } from '@app/launchpack/core/services/navigation/layout-navigation/layout-navigation.service';
-import { of, Subscription } from 'rxjs';
-import { LayoutActionsEnum } from './layout-actions.enum';
+import { TMXWeb, TMX } from './tmxplugin';
+import { registerPlugin } from '@capacitor/core';
 
-describe('PersonalInfoComponent', () => {
-  let component: PersonalInfoComponent;
-  let fixture: ComponentFixture<PersonalInfoComponent>;
-  let navigationServiceMock: any;
-  let layoutNavigationServiceMock: any;
+jest.mock('@capacitor/core', () => ({
+  registerPlugin: jest.fn(),
+  WebPlugin: class {
+    constructor() {}
+  },
+}));
+
+describe('TMXWeb Plugin', () => {
+  let tmxWeb: TMXWeb;
 
   beforeEach(() => {
-    // Mocking the NavigationService
-    navigationServiceMock = {
-      navigateNext: jest.fn(),
-      navigateBack: jest.fn(),
-    };
-
-    // Mocking the LayoutNavigationService with a valid observable
-    layoutNavigationServiceMock = {
-      LayoutActionItems$: of(LayoutActionsEnum.NEXT), // This returns an observable with NEXT action
-    };
-
-    TestBed.configureTestingModule({
-      declarations: [PersonalInfoComponent],
-      providers: [
-        { provide: NavigationService, useValue: navigationServiceMock },
-        { provide: LayoutNavigationService, useValue: layoutNavigationServiceMock },
-      ],
-    });
-
-    fixture = TestBed.createComponent(PersonalInfoComponent);
-    component = fixture.componentInstance;
+    tmxWeb = new TMXWeb();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('should throw "Method not implemented" when profileDevice is called', async () => {
+    await expect(tmxWeb.profileDevice({ tmxSessionId: '123' })).rejects.toThrow('Method not implemented.');
   });
 
-  it('should subscribe to layoutNavigationService on init', () => {
-    // Spy on the observable's subscribe method
-    const subscribeSpy = jest.spyOn(layoutNavigationServiceMock.LayoutActionItems$, 'subscribe');
-
-    // Call ngOnInit
-    component.ngOnInit();
-
-    // Verify if subscription was made
-    expect(subscribeSpy).toHaveBeenCalled();
+  it('should register TMX plugin using registerPlugin', () => {
+    expect(registerPlugin).toHaveBeenCalledWith('TMX', { web: expect.any(Function) });
   });
 
-  it('should navigate next when action is NEXT', () => {
-    component.onLayoutAction(LayoutActionsEnum.NEXT);
-    expect(navigationServiceMock.navigateNext).toHaveBeenCalled();
-  });
-
-  it('should navigate back when action is BACK', () => {
-    component.onLayoutAction(LayoutActionsEnum.BACK);
-    expect(navigationServiceMock.navigateBack).toHaveBeenCalled();
-  });
-
-  it('should unsubscribe from layoutNavSubscription on destroy', () => {
-    // Set up a mock subscription object
-    component.layoutNavSubscription = new Subscription();
-    
-    // Spy on the unsubscribe method
-    const unsubscribeSpy = jest.spyOn(component.layoutNavSubscription, 'unsubscribe');
-    
-    // Call ngOnDestroy
-    component.ngOnDestroy();
-    
-    // Verify if unsubscribe was called
-    expect(unsubscribeSpy).toHaveBeenCalled();
-  });
-
-  it('should call navigationService.navigateBack when back() is called', () => {
-    component.back();
-    expect(navigationServiceMock.navigateBack).toHaveBeenCalled();
+  it('should create a TMXWeb instance when calling the web function', () => {
+    const pluginConfig = registerPlugin.mock.calls[0][1];
+    const webInstance = pluginConfig.web();
+    expect(webInstance).toBeInstanceOf(TMXWeb);
   });
 });
