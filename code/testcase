@@ -1,8 +1,8 @@
-import { TMXWeb } from './tmxplugin';
 import { registerPlugin } from '@capacitor/core';
+import { TMXWeb } from './tmxplugin'; // Importing TMXWeb class to instantiate and test
 
 jest.mock('@capacitor/core', () => ({
-  registerPlugin: jest.fn(),
+  registerPlugin: jest.fn(), // Mock the registerPlugin function
   WebPlugin: class {
     constructor() {}
   },
@@ -20,30 +20,32 @@ describe('TMXWeb Plugin', () => {
   });
 
   it('should register TMX plugin using registerPlugin', () => {
-    // Use mockImplementation to mock the behavior of registerPlugin
+    // Set up the mock implementation before importing the TMX module
     (registerPlugin as jest.Mock).mockImplementation(() => ({
       web: jest.fn().mockReturnValue(new TMXWeb())
     }));
 
-    // Import TMX after mocking registerPlugin
-    const { TMX } = require('./tmxplugin');
+    // Now import TMX after the mock is set up
+    const { TMX } = require('./tmxplugin'); // TMX is imported here after mock setup
 
-    // Verify registerPlugin is called with correct parameters
+    // Ensure registerPlugin was called with 'TMX' and { web: expect.any(Function) }
     expect(registerPlugin).toHaveBeenCalledWith('TMX', { web: expect.any(Function) });
   });
 
   it('should create a TMXWeb instance when calling the web function', () => {
-    // Use mockImplementation for registerPlugin
+    // Set up the mock before importing the TMX module
     (registerPlugin as jest.Mock).mockImplementation(() => ({
       web: jest.fn().mockReturnValue(new TMXWeb())
     }));
 
+    // Import TMX after mocking
     const { TMX } = require('./tmxplugin');
 
-    // Ensure the web function returns a new TMXWeb instance
+    // Extract the plugin configuration and call the web function
     const pluginConfig = registerPlugin.mock.calls[0][1];
     const webInstance = pluginConfig.web();
     
+    // Ensure the web function returns an instance of TMXWeb
     expect(webInstance).toBeInstanceOf(TMXWeb);
   });
 });
