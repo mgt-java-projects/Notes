@@ -1,8 +1,9 @@
 import { registerPlugin } from '@capacitor/core';
-import { TMXWeb } from './tmxplugin'; // Importing TMXWeb class to instantiate and test
+import { TMXWeb } from './tmxplugin'; // Ensure TMXWeb class is imported
 
+// Mock the necessary Capacitor/core functions
 jest.mock('@capacitor/core', () => ({
-  registerPlugin: jest.fn(), // Mock the registerPlugin function
+  registerPlugin: jest.fn(), // Mock registerPlugin
   WebPlugin: class {
     constructor() {}
   },
@@ -13,6 +14,8 @@ describe('TMXWeb Plugin', () => {
 
   beforeEach(() => {
     tmxWeb = new TMXWeb();
+    // Reset mocks before each test
+    jest.clearAllMocks();
   });
 
   it('should throw "Method not implemented" when profileDevice is called', async () => {
@@ -25,27 +28,18 @@ describe('TMXWeb Plugin', () => {
       web: jest.fn().mockReturnValue(new TMXWeb())
     }));
 
-    // Now import TMX after the mock is set up
-    const { TMX } = require('./tmxplugin'); // TMX is imported here after mock setup
-
-    // Ensure registerPlugin was called with 'TMX' and { web: expect.any(Function) }
-    expect(registerPlugin).toHaveBeenCalledWith('TMX', { web: expect.any(Function) });
-  });
-
-  it('should create a TMXWeb instance when calling the web function', () => {
-    // Set up the mock before importing the TMX module
-    (registerPlugin as jest.Mock).mockImplementation(() => ({
-      web: jest.fn().mockReturnValue(new TMXWeb())
-    }));
-
-    // Import TMX after mocking
+    // Import the TMX after the mock has been set up
     const { TMX } = require('./tmxplugin');
 
-    // Extract the plugin configuration and call the web function
-    const pluginConfig = registerPlugin.mock.calls[0][1];
-    const webInstance = pluginConfig.web();
-    
-    // Ensure the web function returns an instance of TMXWeb
-    expect(webInstance).toBeInstanceOf(TMXWeb);
+    // Ensure registerPlugin was called
+    expect(registerPlugin).toHaveBeenCalledWith('TMX', { web: expect.any(Function) });
+
+    // Check that the call actually occurred to prevent "undefined" errors
+    if (registerPlugin.mock.calls.length > 0) {
+      const pluginConfig = registerPlugin.mock.calls[0][1]; // Safely access the call
+      expect(pluginConfig.web()).toBeInstanceOf(TMXWeb); // Check that web returns a TMXWeb instance
+    } else {
+      fail('registerPlugin was not called');
+    }
   });
 });
