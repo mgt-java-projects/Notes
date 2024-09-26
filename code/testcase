@@ -1,4 +1,4 @@
-import { TMXWeb, TMX } from './tmxplugin';
+import { TMXWeb } from './tmxplugin';
 import { registerPlugin } from '@capacitor/core';
 
 jest.mock('@capacitor/core', () => ({
@@ -20,12 +20,28 @@ describe('TMXWeb Plugin', () => {
   });
 
   it('should register TMX plugin using registerPlugin', () => {
+    // Mock the implementation of registerPlugin to return a valid plugin object
+    registerPlugin.mockReturnValue({
+      web: jest.fn().mockReturnValue(new TMXWeb())
+    });
+
+    // Importing TMX (will trigger the plugin registration)
+    const { TMX } = require('./tmxplugin');
+
     expect(registerPlugin).toHaveBeenCalledWith('TMX', { web: expect.any(Function) });
   });
 
   it('should create a TMXWeb instance when calling the web function', () => {
+    // Ensure registerPlugin returns a proper mock with the web function
+    registerPlugin.mockReturnValue({
+      web: jest.fn().mockReturnValue(new TMXWeb())
+    });
+
+    const { TMX } = require('./tmxplugin');
+    
     const pluginConfig = registerPlugin.mock.calls[0][1];
     const webInstance = pluginConfig.web();
+    
     expect(webInstance).toBeInstanceOf(TMXWeb);
   });
 });
