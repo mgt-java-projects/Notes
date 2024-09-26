@@ -20,25 +20,27 @@ describe('TMXWeb Plugin', () => {
   });
 
   it('should register TMX plugin using registerPlugin', () => {
-    // Mock the implementation of registerPlugin to return a valid plugin object
-    registerPlugin.mockReturnValue({
+    // Use mockImplementation to mock the behavior of registerPlugin
+    (registerPlugin as jest.Mock).mockImplementation(() => ({
       web: jest.fn().mockReturnValue(new TMXWeb())
-    });
+    }));
 
-    // Importing TMX (will trigger the plugin registration)
+    // Import TMX after mocking registerPlugin
     const { TMX } = require('./tmxplugin');
 
+    // Verify registerPlugin is called with correct parameters
     expect(registerPlugin).toHaveBeenCalledWith('TMX', { web: expect.any(Function) });
   });
 
   it('should create a TMXWeb instance when calling the web function', () => {
-    // Ensure registerPlugin returns a proper mock with the web function
-    registerPlugin.mockReturnValue({
+    // Use mockImplementation for registerPlugin
+    (registerPlugin as jest.Mock).mockImplementation(() => ({
       web: jest.fn().mockReturnValue(new TMXWeb())
-    });
+    }));
 
     const { TMX } = require('./tmxplugin');
-    
+
+    // Ensure the web function returns a new TMXWeb instance
     const pluginConfig = registerPlugin.mock.calls[0][1];
     const webInstance = pluginConfig.web();
     
