@@ -1,36 +1,60 @@
-import { registerPlugin } from '@capacitor/core';
-import { TMXWeb } from './tmxplugin';
+import { render, screen, fireEvent } from '@testing-library/angular';
+import { LetsGetStartedComponent } from './lets-get-started.component';
+import { AppConfigService } from '@app/launchpack/core/services/app-config.service';
+import { NavigationService } from '@app/launchpack/core/services/navigation/navigation.service';
+import { Product } from '@demo/freddy/core/product-selection-card';
 
-// Mocking '@capacitor/core' module
-jest.mock('@capacitor/core', () => ({
-  registerPlugin: jest.fn(),
-  WebPlugin: class { constructor() {} },
-}));
+jest.mock('@app/launchpack/core/services/app-config.service');
+jest.mock('@app/launchpack/core/services/navigation/navigation.service');
 
-describe('TMXWeb Plugin', () => {
-  let tmxWeb: TMXWeb;
+describe('LetsGetStartedComponent', () => {
+  let mockAppConfigService: jest.Mocked<AppConfigService>;
+  let mockNavigationService: jest.Mocked<NavigationService>;
 
-  beforeEach(() => {
-    tmxWeb = new TMXWeb();
-    jest.clearAllMocks(); // Clear all mock calls and instances
+  beforeEach(async () => {
+    mockAppConfigService = new AppConfigService() as jest.Mocked<AppConfigService>;
+    mockNavigationService = new NavigationService() as jest.Mocked<NavigationService>;
+
+    mockAppConfigService.init.mockImplementation(() => {});
+    mockNavigationService.init.mockImplementation(() => {});
+    mockNavigationService.navigateNext.mockImplementation(() => {});
+    
+    await render(LetsGetStartedComponent, {
+      providers: [
+        { provide: AppConfigService, useValue: mockAppConfigService },
+        { provide: NavigationService, useValue: mockNavigationService },
+      ]
+    });
   });
 
-  it('should register TMX plugin using registerPlugin', () => {
-    // Mocking registerPlugin to return platform implementations
-    (registerPlugin as jest.Mock).mockReturnValue({
-      web: jest.fn().mockReturnValue(new TMXWeb()),
-    });
+  it('should create the component', () => {
+    const component = screen.getByTestId('lets-get-started');
+    expect(component).toBeTruthy();
+  });
 
-    const { TMX } = require('./tmxplugin'); // Import the TMX plugin after mocking
+  it('should initialize appConfigService and navigationService on init', () => {
+    expect(mockAppConfigService.init).toHaveBeenCalled();
+    expect(mockNavigationService.init).toHaveBeenCalledWith('CheckingAccount');
+  });
 
-    // Validate that registerPlugin was called correctly
-    expect(registerPlugin).toHaveBeenCalledWith('TMX', { web: expect.any(Function) });
+  it('should toggle showBottomSheetVal when onInfoButtonClicked is called', async () => {
+    const component = await screen.findByTestId('lets-get-started');
+    const instance = component.componentInstance as LetsGetStartedComponent;
 
-    // Safely access mock calls to avoid undefined errors
-    const pluginConfig = registerPlugin.mock.calls[0][1]; // Retrieve the second argument (config)
+    expect(instance.showBottomSheetVal).toBe(false);
+    
+    fireEvent.click(component);
+    instance.onInfoButtonClicked();
+    
+    expect(instance.showBottomSheetVal).toBe(true);
+  });
 
-    // Check if the web platform function returns an instance of TMXWeb
-    const webInstance = pluginConfig.web();
-    expect(webInstance).toBeInstanceOf(TMXWeb);
+  it('should call navigationService.navigateNext when next is called', () => {
+    const component = screen.getByTestId('lets-get-started');
+    const instance = component.componentInstance as LetsGetStartedComponent;
+
+    instance.next();
+
+    expect(mockNavigationService.navigateNext).toHaveBeenCalled();
   });
 });
