@@ -58,74 +58,97 @@ import { of, throwError } from 'rxjs';
 
 describe('DeviceRegistrationService', () => {
   let service: DeviceRegistrationService;
-  let httpService: jasmine.SpyObj<HttpService>;
-  let deviceIdService: jasmine.SpyObj<DeviceIdService>;
-  let rsaKeyService: jasmine.SpyObj<RSAKeyService>;
+  let httpServiceMock: jest.Mocked<HttpService>;
+  let deviceIdServiceMock: jest.Mocked<DeviceIdService>;
+  let rsaKeyServiceMock: jest.Mocked<RSAKeyService>;
 
   beforeEach(() => {
-    const httpSpy = jasmine.createSpyObj('HttpService', ['post']);
-    const deviceIdSpy = jasmine.createSpyObj('DeviceIdService', ['getDeviceId']);
-    const rsaKeySpy = jasmine.createSpyObj('RSAKeyService', ['getPublicKey']);
+    // Mock services
+    httpServiceMock = {
+      post: jest.fn()
+    } as any;
+
+    deviceIdServiceMock = {
+      getDeviceId: jest.fn().mockReturnValue('mock-device-id')
+    } as any;
+
+    rsaKeyServiceMock = {
+      getPublicKey: jest.fn().mockReturnValue('mock-public-key')
+    } as any;
 
     TestBed.configureTestingModule({
       providers: [
         DeviceRegistrationService,
-        { provide: HttpService, useValue: httpSpy },
-        { provide: DeviceIdService, useValue: deviceIdSpy },
-        { provide: RSAKeyService, useValue: rsaKeySpy }
+        { provide: HttpService, useValue: httpServiceMock },
+        { provide: DeviceIdService, useValue: deviceIdServiceMock },
+        { provide: RSAKeyService, useValue: rsaKeyServiceMock }
       ]
     });
 
     service = TestBed.inject(DeviceRegistrationService);
-    httpService = TestBed.inject(HttpService) as jasmine.SpyObj<HttpService>;
-    deviceIdService = TestBed.inject(DeviceIdService) as jasmine.SpyObj<DeviceIdService>;
-    rsaKeyService = TestBed.inject(RSAKeyService) as jasmine.SpyObj<RSAKeyService>;
   });
 
-  it('should register the device and return the UUID', () => {
-    const mockDeviceId = 'mock-device-id';
-    const mockPublicKey = 'mock-public-key';
-    const mockResponse = { uuid: 'mock-uuid' };
+  it('should register the device and return uuid', (done) => {
+    const mockResponse = { uuid: '1234-5678' };
+    httpServiceMock.post.mockReturnValue(of(mockResponse));
 
-    // Set up spies
-    deviceIdService.getDeviceId.and.returnValue(mockDeviceId);
-    rsaKeyService.getPublicKey.and.returnValue(mockPublicKey);
-    httpService.post.and.returnValue(of(mockResponse));
-
-    // Call the method and assert the result
     service.registerDevice().subscribe({
-      next: (response) => {
-        expect(response.uuid).toBe('mock-uuid');
+      next: (result) => {
+        expect(result.uuid).toBe('1234-5678');
+        expect(httpServiceMock.post).toHaveBeenCalledWith('/api/register-device', {
+          deviceid: 'mock-device-id',
+          publickey: 'mock-public-key'
+        });
+        done();
       },
-      error: () => {
-        fail('Expected successful registration, but got an error.');
+      error: done.fail
+    });
+  });
+
+  it('should handle error on device registration', (done) => {
+    const errorResponse = new Error('Registration failed');
+    httpServiceMock.post.mockReturnValue(throwError(() => errorResponse));
+
+    service.registerDevice().subscribe({
+      next: () => done.fail('Expected an error, but got success'),
+      error: (error) => {
+        expect(error).toBe(errorResponse);
+        done();
       }
     });
+  });
 
-    // Check if the HTTP service was called with the correct URL and payload
-    expect(httpService.post).toHaveBeenCalledWith('/api/register-device', {
-      deviceid: mockDeviceId,
-      publickey: mockPublicKey
+  it('should call getDeviceId and getPublicKey once', () => {
+    service.registerDevice();
+    expect(deviceIdServiceMock.getDeviceId).toHaveBeenCalledTimes(1);
+    expect(rsaKeyServiceMock.getPublicKey).toHaveBeenCalledTimes(1);
+  });
+
+  it('should call HTTP post with correct URL', (done) => {
+    const mockResponse = { uuid: 'uuid-value' };
+    httpServiceMock.post.mockReturnValue(of(mockResponse));
+
+    service.registerDevice().subscribe({
+      next: () => {
+        expect(httpServiceMock.post).toHaveBeenCalledWith('/api/register-device', {
+          deviceid: 'mock-device-id',
+          publickey: 'mock-public-key'
+        });
+        done();
+      },
+      error: done.fail
     });
   });
 
-  it('should handle error when registering the device', () => {
-    const mockDeviceId = 'mock-device-id';
-    const mockPublicKey = 'mock-public-key';
-    const mockError = { message: 'Network error' };
+  it('should throw an error if HTTP post fails', (done) => {
+    const errorResponse = new Error('Network Error');
+    httpServiceMock.post.mockReturnValue(throwError(() => errorResponse));
 
-    // Set up spies
-    deviceIdService.getDeviceId.and.returnValue(mockDeviceId);
-    rsaKeyService.getPublicKey.and.returnValue(mockPublicKey);
-    httpService.post.and.returnValue(throwError(() => mockError));
-
-    // Call the method and assert the result
     service.registerDevice().subscribe({
-      next: () => {
-        fail('Expected an error, but got a successful response.');
-      },
+      next: () => done.fail('Expected an error, but got success'),
       error: (error) => {
-        expect(error).toEqual(mockError);
+        expect(error).toBe(errorResponse);
+        done();
       }
     });
   });
