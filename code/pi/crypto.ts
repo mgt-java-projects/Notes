@@ -188,3 +188,37 @@ describe('RSAKeyService', () => {
     expect(base64).toBe('AQIDBAQ='); // Base64 of [1, 2, 3, 4]
   });
 });
+
+
+---------------
+import { Component, OnInit } from '@angular/core';
+import { RSAKeyService } from './rsa-key.service';
+
+@Component({
+  selector: 'app-rsa-key',
+  templateUrl: './rsa-key.component.html',
+  styleUrls: ['./rsa-key.component.css']
+})
+export class RSAKeyComponent implements OnInit {
+
+  public publicKey: string = '';
+  public privateKey: string = '';
+
+  constructor(private rsaKeyService: RSAKeyService) { }
+
+  ngOnInit(): void {
+    // Generate RSA keys when the component initializes
+    this.generateKeys();
+  }
+
+  // Method to generate RSA keys
+  async generateKeys(): Promise<void> {
+    try {
+      const { publicKey, privateKey } = await this.rsaKeyService.generateKeyPair();
+      this.publicKey = publicKey;   // Store public key
+      this.privateKey = privateKey; // Store private key
+    } catch (error) {
+      console.error('Error generating RSA keys:', error);
+    }
+  }
+}
