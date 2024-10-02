@@ -1,0 +1,9 @@
+{
+    "status": "failure",
+    "message": "Failed to fetch user data",
+    "error": {
+      "code": 500,
+      "description": "Internal Server Error"
+    }
+  }
+  

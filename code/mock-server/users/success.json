@@ -1,0 +1,10 @@
+{
+    "status": "success",
+    "message": "User data fetched successfully!",
+    "data": {
+      "id": 1,
+      "username": "john_doe",
+      "email": "john.doe@example.com",
+      "role": "admin"
+    }
+  }
