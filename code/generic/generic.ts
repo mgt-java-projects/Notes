@@ -73,4 +73,53 @@ describe('GenericWelcomeComponent', () => {
       Medium: 'mobileApp_Webview',
     });
   });
+
+  it('should initialize component and call triggerGTM with AppStep1 on ngOnInit', () => {
+    // Mock the observe function to return an observable of a mock BreakpointState
+    jest.spyOn(breakpointObserver, 'observe').mockReturnValue(of({
+      matches: false // Simulate a non-tablet view state
+    }));
+
+    const triggerGTMSpy = jest.spyOn(component, 'triggerGTM');
+    
+    // Call ngOnInit to trigger the logic
+    component.ngOnInit();
+
+    // Test expectations
+    expect(triggerGTMSpy).toHaveBeenCalledWith('AppStep1');
+    expect(breakpointObserver.observe).toHaveBeenCalled();  // Verify that the BreakpointObserver is called
+  });
+
+  it('should set isTabletView to true if breakpoint matches on ngOnInit', () => {
+    // Mock the observe function to simulate a tablet view (matches: true)
+    jest.spyOn(breakpointObserver, 'observe').mockReturnValue(of({
+      matches: true // Simulate tablet view
+    }));
+
+    const detectChangesSpy = jest.spyOn(cdr, 'detectChanges');
+
+    // Call ngOnInit
+    component.ngOnInit();
+
+    // Test expectations
+    expect(component.isTabletView).toBe(true);  // isTabletView should be set to true
+    expect(detectChangesSpy).toHaveBeenCalled();  // detectChanges should be triggered after state change
+  });
+
+  it('should set isTabletView to false if breakpoint does not match on ngOnInit', () => {
+    // Mock the observe function to simulate a non-tablet view (matches: false)
+    jest.spyOn(breakpointObserver, 'observe').mockReturnValue(of({
+      matches: false // Simulate non-tablet view
+    }));
+
+    const detectChangesSpy = jest.spyOn(cdr, 'detectChanges');
+
+    // Call ngOnInit
+    component.ngOnInit();
+
+    // Test expectations
+    expect(component.isTabletView).toBe(false);  // isTabletView should be set to false
+    expect(detectChangesSpy).toHaveBeenCalled();  // detectChanges should be triggered after state change
+  });
+
 });
