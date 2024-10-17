@@ -1,13 +1,7 @@
-
 import { Injectable } from '@angular/core';
 import { StorageService } from './storage.service'; // Import your StorageService
-
-
-// Define an enum for storage keys
-export enum StorageKeys {
-    UUID = 'uuid',
-    SELECTED_PRODUCT_DETAILS = 'selectedProductDetails',
-  }
+import { StorageKeys } from './storage-keys.enum'; // Import the enum
+import { StorageSerializable } from './storage-serializable.interface'; // Assuming this exists
 
 @Injectable({
   providedIn: 'root',
@@ -17,101 +11,151 @@ export class LaunchPermanentStorage {
 
   /**
    * Save data to permanent storage using the given key.
+   * The data must implement StorageSerializable.
    * @param key - The key used to identify the data in storage.
-   * @param data - The data to store.
+   * @param data - The data to store, must be StorageSerializable.
+   * @returns A promise that resolves to true if the operation is successful.
    */
-  async saveData(key: StorageKeys, data: any): Promise<void> {
-    await this.permanentStorage.set(key, data);
+  async saveData(key: StorageKeys, data: StorageSerializable): Promise<boolean> {
+    return await this.permanentStorage.set(key, data);
   }
 
   /**
    * Retrieve data from permanent storage using the given key.
+   * The data retrieved must implement StorageSerializable.
    * @param key - The key used to retrieve data from storage.
    * @returns A promise that resolves to the stored data or null if no data exists.
    */
-  async getData<T>(key: StorageKeys): Promise<T | null> {
+  async getData<T extends StorageSerializable>(key: StorageKeys): Promise<T | null> {
     return await this.permanentStorage.get<T>(key);
   }
-}
 
----------
+  /**
+   * Remove data from permanent storage using the given key.
+   * @param key - The key used to remove data from storage.
+   */
+  async removeData(key: StorageKeys): Promise<void> {
+    await this.permanentStorage.remove(key);
+  }
+
+  /**
+   * Save a string value to permanent storage using the given key.
+   * @param key - The key used to store the string value.
+   * @param value - The string value to store.
+   */
+  async setStringValue(key: StorageKeys, value: string): Promise<boolean> {
+    return await this.permanentStorage.setStringValue(key, value);
+  }
+
+  /**
+   * Retrieve a string value from permanent storage using the given key.
+   * @param key - The key used to retrieve the string value from storage.
+   * @returns A promise that resolves to the stored string or null if no data exists.
+   */
+  async getStringValue(key: StorageKeys): Promise<string | null> {
+    return await this.permanentStorage.getStringValue(key);
+  }
+}
+-------------
 import { TestBed } from '@angular/core/testing';
 import { LaunchPermanentStorage } from './launch-permanent-storage.service';
-import { StorageService } from './storage.service'; // Import the mockable StorageService
+import { StorageService } from './storage.service';
 import { StorageKeys } from './storage-keys.enum';
+import { StorageSerializable } from './storage-serializable.interface';
 
-describe('LaunchPermanentStorage Service', () => {
+describe('LaunchPermanentStorage', () => {
   let service: LaunchPermanentStorage;
-  let storageService: StorageService;
+  let storageServiceMock: jasmine.SpyObj<StorageService>;
 
   beforeEach(() => {
-    // Create a mock StorageService
-    const storageServiceMock = {
-      set: jest.fn(),
-      get: jest.fn(),
-    };
+    const spy = jasmine.createSpyObj('StorageService', [
+      'set',
+      'get',
+      'remove',
+      'setStringValue',
+      'getStringValue',
+    ]);
 
-    // Initialize TestBed
     TestBed.configureTestingModule({
       providers: [
         LaunchPermanentStorage,
-        { provide: StorageService, useValue: storageServiceMock },
+        { provide: StorageService, useValue: spy },
       ],
     });
 
-    // Inject the service and the mocked StorageService
     service = TestBed.inject(LaunchPermanentStorage);
-    storageService = TestBed.inject(StorageService);
+    storageServiceMock = TestBed.inject(
+      StorageService
+    ) as jasmine.SpyObj<StorageService>;
   });
 
-  /**
-   * Test the saveData method to ensure it calls the set method of StorageService.
-   */
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+
   it('should save data to permanent storage', async () => {
-    const testData = 'test-device-id';
-    const key = StorageKeys.UUID;
+    const key = StorageKeys.USER_INFO;
+    const data: StorageSerializable = { id: 1, name: 'test' };
+    storageServiceMock.set.and.returnValue(Promise.resolve(true));
 
-    // Call the saveData method
-    await service.saveData(key, testData);
-
-    // Assert that the StorageService's set method was called with the correct key and data
-    expect(storageService.set).toHaveBeenCalledWith(key, testData);
+    const result = await service.saveData(key, data);
+    expect(result).toBe(true);
+    expect(storageServiceMock.set).toHaveBeenCalledWith(key, data);
   });
 
-  /**
-   * Test the getData method to ensure it calls the get method of StorageService and returns the correct data.
-   */
   it('should retrieve data from permanent storage', async () => {
-    const storedData = 'stored-device-id';
-    const key = StorageKeys.UUID;
+    const key = StorageKeys.USER_INFO;
+    const data: StorageSerializable = { id: 1, name: 'test' };
+    storageServiceMock.get.and.returnValue(Promise.resolve(data));
 
-    // Mock the get method to return a specific value
-    (storageService.get as jest.Mock).mockResolvedValue(storedData);
-
-    // Call the getData method
-    const result = await service.getData<string>(key);
-
-    // Assert that the StorageService's get method was called with the correct key
-    expect(storageService.get).toHaveBeenCalledWith(key);
-
-    // Assert that the result is equal to the mocked data
-    expect(result).toBe(storedData);
+    const result = await service.getData<typeof data>(key);
+    expect(result).toEqual(data);
+    expect(storageServiceMock.get).toHaveBeenCalledWith(key);
   });
 
-  /**
-   * Test the getData method to handle when no data exists (returns null).
-   */
-  it('should return null when no data exists', async () => {
-    const key = StorageKeys.SELECTED_PRODUCT_DETAILS;
+  it('should return null if no data exists in permanent storage', async () => {
+    const key = StorageKeys.USER_INFO;
+    storageServiceMock.get.and.returnValue(Promise.resolve(null));
 
-    // Mock the get method to return null
-    (storageService.get as jest.Mock).mockResolvedValue(null);
-
-    // Call the getData method
-    const result = await service.getData<any>(key);
-
-    // Assert that the result is null
+    const result = await service.getData(key);
     expect(result).toBeNull();
+    expect(storageServiceMock.get).toHaveBeenCalledWith(key);
+  });
+
+  it('should remove data from permanent storage', async () => {
+    const key = StorageKeys.USER_INFO;
+    storageServiceMock.remove.and.returnValue(Promise.resolve());
+
+    await service.removeData(key);
+    expect(storageServiceMock.remove).toHaveBeenCalledWith(key);
+  });
+
+  it('should save a string value to permanent storage', async () => {
+    const key = StorageKeys.USER_TOKEN;
+    const value = 'token123';
+    storageServiceMock.setStringValue.and.returnValue(Promise.resolve(true));
+
+    const result = await service.setStringValue(key, value);
+    expect(result).toBe(true);
+    expect(storageServiceMock.setStringValue).toHaveBeenCalledWith(key, value);
+  });
+
+  it('should retrieve a string value from permanent storage', async () => {
+    const key = StorageKeys.USER_TOKEN;
+    const value = 'token123';
+    storageServiceMock.getStringValue.and.returnValue(Promise.resolve(value));
+
+    const result = await service.getStringValue(key);
+    expect(result).toBe(value);
+    expect(storageServiceMock.getStringValue).toHaveBeenCalledWith(key);
+  });
+
+  it('should return null if no string value exists in permanent storage', async () => {
+    const key = StorageKeys.USER_TOKEN;
+    storageServiceMock.getStringValue.and.returnValue(Promise.resolve(null));
+
+    const result = await service.getStringValue(key);
+    expect(result).toBeNull();
+    expect(storageServiceMock.getStringValue).toHaveBeenCalledWith(key);
   });
 });
-
