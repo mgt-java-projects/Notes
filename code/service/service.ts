@@ -99,73 +99,73 @@ describe('LaunchPermanentStorage', () => {
   });
 });
 
-function formatVersion(version) {
-  const parts = version.split('.');
 
-  // If there's only the major version (e.g., '17'), return it as is.
-  if (parts.length === 1) {
-    return version;
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class UrlParamService {
+
+  constructor() {}
+
+  getQueryParams(url: string): { [key: string]: string } {
+    const params = new URL(url).searchParams;
+    const queryParams: { [key: string]: string } = {};
+    
+    params.forEach((value, key) => {
+      queryParams[key] = value;
+    });
+
+    return queryParams;
   }
-  
-  // If there are more than 2 parts (e.g., '17.5.1'), return only the first two parts.
-  if (parts.length > 2) {
-    return `${parts[0]}.${parts[1]}`;
-  }
-  
-  // If it's already in '17.5' format, return it as is.
-  return version;
 }
-
-// Examples:
-console.log(formatVersion("17.5.1")); // Output: "17.5"
-console.log(formatVersion("17.5"));   // Output: "17.5"
-console.log(formatVersion("17"));     // Output: "17"
 
 
 import { TestBed } from '@angular/core/testing';
-import { VersionService } from './version.service'; // Adjust the path to your service
+import { UrlParamService } from './url-param.service';
 
-describe('VersionService', () => {
-  let service: VersionService;
+describe('UrlParamService', () => {
+  let service: UrlParamService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(VersionService);
+    TestBed.configureTestingModule({
+      providers: [UrlParamService]
+    });
+    service = TestBed.inject(UrlParamService);
   });
 
-  it('should return "17.5" when input is "17.5.1"', () => {
-    const result = service.formatVersion('17.5.1');
-    expect(result).toBe('17.5');
+  it('should be created', () => {
+    expect(service).toBeTruthy();
   });
 
-  it('should return "17.5" when input is "17.5"', () => {
-    const result = service.formatVersion('17.5');
-    expect(result).toBe('17.5');
+  it('should extract query parameters from the URL', () => {
+    const url = ''
+    const expectedParams = {
+      rg: '',
+      spc: '',
+      ofid: '',
+      spc2: '',
+      ofid2: '',
+      lang: '',
+      plan: '--Account',
+      plan2: '-Account',
+      OMPID: '',
+      OMPID2: '',
+      productID: '',
+      product2ID: '',
+      os: 'iosl'
+    };
+
+    const queryParams = service.getQueryParams(url);
+
+    expect(queryParams).toEqual(expectedParams);
   });
 
-  it('should return "17" when input is "17"', () => {
-    const result = service.formatVersion('17');
-    expect(result).toBe('17');
-  });
-
-  it('should return "19.9" when input is "19.9.5"', () => {
-    const result = service.formatVersion('19.9.5');
-    expect(result).toBe('19.9');
-  });
-
-  it('should return "19" when input is "19"', () => {
-    const result = service.formatVersion('19');
-    expect(result).toBe('19');
-  });
-
-  it('should return "21.0" when input is "21.0.0"', () => {
-    const result = service.formatVersion('21.0.0');
-    expect(result).toBe('21.0');
-  });
-
-  it('should handle unexpected input gracefully', () => {
-    const result = service.formatVersion('invalid.version');
-    expect(result).toBe('invalid');
+  it('should return an empty object if no parameters are present', () => {
+    const url = '';
+    const queryParams = service.getQueryParams(url);
+    expect(queryParams).toEqual({});
   });
 });
 
