@@ -169,7 +169,13 @@ describe('UrlParamService', () => {
   });
 });
 
-<meta http-equiv="Content-Security-Policy" content="default-src * 'self' data: gap: https://ssl.gstatic.com https://www.google-analytics.com https://www.googletagmanager.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google-analytics.com https://www.googletagmanager.com; connect-src * 'self' https://www.google-analytics.com https://www.googletagmanager.com; img-src 'self' data: https://www.google-analytics.com; style-src 'self' 'unsafe-inline';">
+<meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://*.bmo.com;
+    img-src 'self' data: https://www.googletagmanager.com https://www.google-analytics.com https://*.bmo.com;
+    connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.bmo.com;
+    style-src 'self' 'unsafe-inline';">
+
 
 
 
