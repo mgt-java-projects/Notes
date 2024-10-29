@@ -179,3 +179,14 @@ describe('UrlParamService', () => {
 
 
 
+    <script async src="https://www.google-analytics.com/analytics.js"></script>
+<script>
+  window.ga = window.ga || function() { (ga.q = ga.q || []).push(arguments); };
+  ga('create', 'UA-XXXXX-Y', 'auto');  // Replace with your GA Tracking ID
+  ga('send', 'pageview');  // Initiates a pageview request
+</script>
+ 
+
+<meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval';">
+
+gtag('set', {'checkProtocolTask': function(){ /* nothing */ } });
