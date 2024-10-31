@@ -1,97 +1,94 @@
 import { TestBed } from '@angular/core/testing';
-import { DeviceRegistrationApiService } from './device-registration-api.service';
-import { CpxHttpClientService } from './cpx-http-client.service';
-import { DeviceIdService } from './device-id.service';
-import { RSAKeyService } from './rsa-key.service';
+import { LetsGetStartedComponent } from './lets-get-started.component';
 import { of, throwError } from 'rxjs';
-import { DeviceRegistrationApiRes } from '../models/api/device-registration-api-res.model';
 
-describe('DeviceRegistrationApiService', () => {
-  let service: DeviceRegistrationApiService;
-  let cpxHttpService: jest.Mocked<CpxHttpClientService>;
-  let deviceIdService: jest.Mocked<DeviceIdService>;
-  let rsaKeyService: jest.Mocked<RSAKeyService>;
+// Mock services
+const appConfigServiceMock = { init: jest.fn() };
+const deviceIdServiceMock = { initialize: jest.fn(), getDeviceId: jest.fn().mockReturnValue('testDeviceId') };
+const rsaKeyServiceMock = { generateKeyPair: jest.fn().mockResolvedValue({ publicKey: 'testPublicKey', privateKey: 'testPrivateKey' }) };
+const launchPermanentStorageServiceMock = { setStringValue: jest.fn() };
+const deviceRegistrationApiServiceMock = { registerDevice: jest.fn() };
+const navigationServiceMock = { init: jest.fn() };
+
+describe('LetsGetStartedComponent', () => {
+  let component: LetsGetStartedComponent;
 
   beforeEach(() => {
-    const cpxHttpServiceMock = {
-      post: jest.fn()
-    };
-    const deviceIdServiceMock = {
-      getDeviceId: jest.fn().mockReturnValue('testDeviceId')
-    };
-    const rsaKeyServiceMock = {
-      getPublicKey: jest.fn().mockReturnValue('testPublicKey'),
-      generateKeyPair: jest.fn()
-    };
-
     TestBed.configureTestingModule({
       providers: [
-        DeviceRegistrationApiService,
-        { provide: CpxHttpClientService, useValue: cpxHttpServiceMock },
-        { provide: DeviceIdService, useValue: deviceIdServiceMock },
-        { provide: RSAKeyService, useValue: rsaKeyServiceMock }
-      ]
+        LetsGetStartedComponent,
+        { provide: 'AppConfigService', useValue: appConfigServiceMock },
+        { provide: 'DeviceIdService', useValue: deviceIdServiceMock },
+        { provide: 'RSAKeyService', useValue: rsaKeyServiceMock },
+        { provide: 'LaunchPermanentStorageService', useValue: launchPermanentStorageServiceMock },
+        { provide: 'DeviceRegistrationApiService', useValue: deviceRegistrationApiServiceMock },
+        { provide: 'NavigationService', useValue: navigationServiceMock },
+      ],
     });
 
-    service = TestBed.inject(DeviceRegistrationApiService);
-    cpxHttpService = TestBed.inject(CpxHttpClientService) as jest.Mocked<CpxHttpClientService>;
-    deviceIdService = TestBed.inject(DeviceIdService) as jest.Mocked<DeviceIdService>;
-    rsaKeyService = TestBed.inject(RSAKeyService) as jest.Mocked<RSAKeyService>;
+    component = TestBed.inject(LetsGetStartedComponent);
   });
 
-  it('should create service instance', () => {
-    expect(service).toBeTruthy();
+  afterEach(() => {
+    jest.clearAllMocks(); // Clear mocks after each test
   });
 
-  it('should successfully register a device on first attempt', (done) => {
-    const mockResponse: HttpResponse<DeviceRegistrationApiRes> = { body: { status: 'Success' } };
-    cpxHttpService.post.mockReturnValue(of(mockResponse));
+  describe('ngOnInit', () => {
+    it('should initialize configuration, device ID, and RSA keys, and register device', async () => {
+      jest.spyOn(component, 'generateRSAKeys').mockResolvedValue();
+      jest.spyOn(component, 'registerDevice').mockImplementation();
 
-    service.registerDevice().subscribe((response) => {
-      expect(response).toEqual(mockResponse);
-      expect(cpxHttpService.post).toHaveBeenCalledTimes(1);
-      done();
-    });
-  });
+      await component.ngOnInit();
 
-  it('should retry registration when device is already registered', (done) => {
-    const mockAlreadyRegisteredResponse: HttpResponse<DeviceRegistrationApiRes> = { body: { status: 'Device Already Registered' } };
-    const mockSuccessResponse: HttpResponse<DeviceRegistrationApiRes> = { body: { status: 'Success' } };
-    
-    cpxHttpService.post
-      .mockReturnValueOnce(of(mockAlreadyRegisteredResponse))
-      .mockReturnValueOnce(of(mockSuccessResponse));
-
-    service.registerDevice().subscribe((response) => {
-      expect(response).toEqual(mockSuccessResponse);
-      expect(cpxHttpService.post).toHaveBeenCalledTimes(2);
-      expect(rsaKeyService.generateKeyPair).toHaveBeenCalledTimes(1);
-      done();
+      expect(appConfigServiceMock.init).toHaveBeenCalled();
+      expect(deviceIdServiceMock.initialize).toHaveBeenCalled();
+      expect(component.generateRSAKeys).toHaveBeenCalled();
+      expect(component.registerDevice).toHaveBeenCalled();
+      expect(navigationServiceMock.init).toHaveBeenCalledWith('CheckingAccount');
     });
   });
 
-  it('should propagate error on registration failure', (done) => {
-    const mockError = new Error('Registration failed');
-    cpxHttpService.post.mockReturnValue(throwError(() => mockError));
+  describe('generateRSAKeys', () => {
+    it('should generate RSA keys and store them in permanent storage', async () => {
+      await component.generateRSAKeys();
 
-    service.registerDevice().subscribe({
-      next: () => {},
-      error: (error) => {
-        expect(error).toBe(mockError);
-        expect(cpxHttpService.post).toHaveBeenCalledTimes(1);
-        done();
-      }
+      expect(rsaKeyServiceMock.generateKeyPair).toHaveBeenCalled();
+      expect(launchPermanentStorageServiceMock.setStringValue).toHaveBeenCalledWith('RSA_PRIVATE_KEY', 'testPrivateKey');
+      expect(launchPermanentStorageServiceMock.setStringValue).toHaveBeenCalledWith('RSA_PUBLIC_KEY', 'testPublicKey');
+    });
+
+    it('should handle errors when generating RSA keys', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      rsaKeyServiceMock.generateKeyPair.mockRejectedValue(new Error('Failed to generate keys'));
+
+      await component.generateRSAKeys();
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error generating RSA keys:', expect.any(Error));
+      consoleErrorSpy.mockRestore();
     });
   });
 
-  it('should call generateRequest to get deviceId and publicKey', () => {
-    const request = service['generateRequest']();
-    expect(request.deviceId).toBe('testDeviceId');
-    expect(request.publicKey).toBe('testPublicKey');
-  });
+  describe('registerDevice', () => {
+    it('should register the device and store UUID if registration is successful', () => {
+      const mockResponse = { body: { uuid: 'testUUID' } };
+      deviceRegistrationApiServiceMock.registerDevice.mockReturnValue(of(mockResponse));
 
-  it('should check if device is already registered', () => {
-    const response: HttpResponse<DeviceRegistrationApiRes> = { body: { status: 'Device Already Registered' } };
-    expect(service['isDeviceAlreadyRegistered'](response)).toBe(true);
+      component.registerDevice();
+
+      expect(deviceRegistrationApiServiceMock.registerDevice).toHaveBeenCalled();
+      expect(launchPermanentStorageServiceMock.setStringValue).toHaveBeenCalledWith('UUID', 'testUUID');
+      expect(console.log).toHaveBeenCalledWith('Device registered with UUID:', 'testUUID');
+    });
+
+    it('should handle errors when registering the device', () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      deviceRegistrationApiServiceMock.registerDevice.mockReturnValue(throwError(() => new Error('Registration failed')));
+
+      component.registerDevice();
+
+      expect(deviceRegistrationApiServiceMock.registerDevice).toHaveBeenCalled();
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error registering device:', expect.any(Error));
+      consoleErrorSpy.mockRestore();
+    });
   });
 });
