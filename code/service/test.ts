@@ -1,146 +1,189 @@
+import { Injectable } from '@angular/core';
+import { Observable, of } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
+import { HttpResponse } from '@angular/common/http';
+import { DeviceRegistrationApiRes } from '../models/api/device-registration-api-res.model';
+import { DeviceRegistrationApiReq } from '../models/api/device-registration-api-req.model';
+import { CpxHttpClientService } from './cpx-http-client.service';
+import { DeviceIdService } from './device-id.service';
+import { RSAKeyService } from './rsa-key.service';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class DeviceRegistrationApiService {
+  private deviceRegistrationAttempt = 0; // Tracks the number of registration attempts
+  private DEVICE_REGISTRATION_API_END_POINT = '/launch-openaccount/services/session-dialogue/onboarding-journey/registered-device';
+
+  constructor(
+    private cpxHttpService: CpxHttpClientService, // Custom HTTP client service for handling requests
+    private deviceIdService: DeviceIdService,      // Service to retrieve the device ID
+    private rsaKeyService: RSAKeyService           // Service to manage RSA key generation and retrieval
+  ) {}
+
+  /**
+   * Initiates the device registration process.
+   * If the device is already registered, it retries registration with a new key pair.
+   */
+  registerDevice(): Observable<HttpResponse<DeviceRegistrationApiRes>> {
+    return this.sendDeviceRegistrationRequest().pipe(
+      switchMap((response) => this.handleDeviceAlreadyRegistered(response)),
+      catchError((error) => this.handleError(error)) // Handle errors if any occur during registration
+    );
+  }
+
+  /**
+   * Sends a device registration request.
+   */
+  private sendDeviceRegistrationRequest(): Observable<HttpResponse<DeviceRegistrationApiRes>> {
+    return this.cpxHttpService.post<DeviceRegistrationApiRes>(
+      this.DEVICE_REGISTRATION_API_END_POINT,
+      this.generateRequest()
+    );
+  }
+
+  /**
+   * Handles the case where the device is already registered.
+   * If registered, generates a new key pair and retries registration.
+   * @param response The response from the initial registration attempt.
+   */
+  private handleDeviceAlreadyRegistered(response: HttpResponse<DeviceRegistrationApiRes>): Observable<HttpResponse<DeviceRegistrationApiRes>> {
+    if (this.isDeviceAlreadyRegistered(response)) {
+      this.retryDeviceRegistration();
+      return this.sendDeviceRegistrationRequest();
+    }
+    return of(response); // Return the original response if device is not already registered
+  }
+
+  /**
+   * Checks if the device is already registered based on response status and attempt count.
+   */
+  private isDeviceAlreadyRegistered(response: HttpResponse<DeviceRegistrationApiRes>): boolean {
+    return this.deviceRegistrationAttempt++ > 0 && response.body?.status === 'Device Already Registered';
+  }
+
+  /**
+   * Generates a new RSA key pair for retrying device registration.
+   */
+  private retryDeviceRegistration(): void {
+    this.rsaKeyService.generateKeyPair();
+  }
+
+  /**
+   * Custom error handling for registration errors.
+   * @param error The error object caught during registration.
+   */
+  private handleError(error: any): Observable<never> {
+    throw error; // Re-throw the error to propagate it further
+  }
+
+  /**
+   * Generates the registration request object containing device ID and public key.
+   */
+  private generateRequest(): DeviceRegistrationApiReq {
+    const deviceId = this.deviceIdService.getDeviceId();
+    const publicKey = this.rsaKeyService.getPublicKey();
+
+    return { deviceId, publicKey };
+  }
+}
+
+
+---------------
+
+
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
 import { DeviceRegistrationApiService } from './device-registration-api.service';
-import { CpxHttpClientService } from '../path-to-cpx-http-client-service';
-import { DeviceIdService } from '../path-to-device-id-service';
-import { RSAKeyService } from '../path-to-rsa-key-service';
-import { DeviceRegistrationApiReq } from '../models/api/device-registration-api-res.model';
+import { CpxHttpClientService } from './cpx-http-client.service';
+import { DeviceIdService } from './device-id.service';
+import { RSAKeyService } from './rsa-key.service';
+import { of, throwError } from 'rxjs';
+import { HttpResponse } from '@angular/common/http';
+import { DeviceRegistrationApiRes } from '../models/api/device-registration-api-res.model';
 
 describe('DeviceRegistrationApiService', () => {
   let service: DeviceRegistrationApiService;
-  let httpClientMock: jest.Mocked<CpxHttpClientService>;
-  let deviceIdServiceMock: jest.Mocked<DeviceIdService>;
-  let rsaKeyServiceMock: jest.Mocked<RSAKeyService>;
+  let cpxHttpService: jest.Mocked<CpxHttpClientService>;
+  let deviceIdService: jest.Mocked<DeviceIdService>;
+  let rsaKeyService: jest.Mocked<RSAKeyService>;
 
   beforeEach(() => {
-    httpClientMock = {
-      post: jest.fn(),
-    } as unknown as jest.Mocked<CpxHttpClientService>;
-
-    deviceIdServiceMock = {
-      getDeviceId: jest.fn(),
-    } as unknown as jest.Mocked<DeviceIdService>;
-
-    rsaKeyServiceMock = {
-      generateKeyPair: jest.fn(),
-      getPublicKey: jest.fn(),
-    } as unknown as jest.Mocked<RSAKeyService>;
+    const cpxHttpServiceMock = {
+      post: jest.fn()
+    };
+    const deviceIdServiceMock = {
+      getDeviceId: jest.fn().mockReturnValue('testDeviceId')
+    };
+    const rsaKeyServiceMock = {
+      getPublicKey: jest.fn().mockReturnValue('testPublicKey'),
+      generateKeyPair: jest.fn()
+    };
 
     TestBed.configureTestingModule({
       providers: [
         DeviceRegistrationApiService,
-        { provide: CpxHttpClientService, useValue: httpClientMock },
+        { provide: CpxHttpClientService, useValue: cpxHttpServiceMock },
         { provide: DeviceIdService, useValue: deviceIdServiceMock },
-        { provide: RSAKeyService, useValue: rsaKeyServiceMock },
-      ],
+        { provide: RSAKeyService, useValue: rsaKeyServiceMock }
+      ]
     });
 
     service = TestBed.inject(DeviceRegistrationApiService);
+    cpxHttpService = TestBed.inject(CpxHttpClientService) as jest.Mocked<CpxHttpClientService>;
+    deviceIdService = TestBed.inject(DeviceIdService) as jest.Mocked<DeviceIdService>;
+    rsaKeyService = TestBed.inject(RSAKeyService) as jest.Mocked<RSAKeyService>;
   });
 
-  it('should be created', () => {
+  it('should create service instance', () => {
     expect(service).toBeTruthy();
   });
 
-  describe('registerDevice', () => {
-    it('should register the device when it is not already registered', (done) => {
-      const mockResponse = { body: { status: 'Device Not Registered' } };
-      httpClientMock.post.mockReturnValueOnce(of(mockResponse));
-      deviceIdServiceMock.getDeviceId.mockReturnValue('mockDeviceId');
-      rsaKeyServiceMock.getPublicKey.mockReturnValue('mockPublicKey');
+  it('should successfully register a device on first attempt', (done) => {
+    const mockResponse = new HttpResponse<DeviceRegistrationApiRes>({ body: { status: 'Success' } });
+    cpxHttpService.post.mockReturnValue(of(mockResponse));
 
-      service.registerDevice().subscribe((response) => {
-        expect(response).toEqual(mockResponse);
-        expect(httpClientMock.post).toHaveBeenCalledTimes(2);
-        expect(rsaKeyServiceMock.generateKeyPair).toHaveBeenCalled();
-        done();
-      });
-    });
-
-    it('should not register the device if already registered', (done) => {
-      const alreadyRegisteredResponse = { body: { status: 'Device Already Registered' } };
-      httpClientMock.post.mockReturnValueOnce(of(alreadyRegisteredResponse));
-
-      service.registerDevice().subscribe((response) => {
-        expect(response).toEqual(alreadyRegisteredResponse);
-        expect(httpClientMock.post).toHaveBeenCalledTimes(1);
-        expect(rsaKeyServiceMock.generateKeyPair).not.toHaveBeenCalled();
-        done();
-      });
-    });
-
-    it('should handle an error if post request fails', (done) => {
-      const errorResponse = new Error('Network error');
-      httpClientMock.post.mockReturnValueOnce(throwError(errorResponse));
-
-      service.registerDevice().subscribe({
-        error: (error) => {
-          expect(error).toBe(errorResponse);
-          expect(httpClientMock.post).toHaveBeenCalledTimes(1);
-          done();
-        },
-      });
+    service.registerDevice().subscribe((response) => {
+      expect(response).toEqual(mockResponse);
+      expect(cpxHttpService.post).toHaveBeenCalledTimes(1);
+      done();
     });
   });
 
-  describe('generateRequest', () => {
-    it('should create a valid request object', () => {
-      const mockDeviceId = 'mockDeviceId';
-      const mockPublicKey = 'mockPublicKey';
+  it('should retry registration when device is already registered', (done) => {
+    const mockAlreadyRegisteredResponse = new HttpResponse<DeviceRegistrationApiRes>({ body: { status: 'Device Already Registered' } });
+    const mockSuccessResponse = new HttpResponse<DeviceRegistrationApiRes>({ body: { status: 'Success' } });
+    cpxHttpService.post.mockReturnValueOnce(of(mockAlreadyRegisteredResponse)).mockReturnValueOnce(of(mockSuccessResponse));
 
-      deviceIdServiceMock.getDeviceId.mockReturnValue(mockDeviceId);
-      rsaKeyServiceMock.getPublicKey.mockReturnValue(mockPublicKey);
-
-      const request = service['generateRequest']();
-
-      expect(request).toEqual({
-        deviceId: mockDeviceId,
-        publicKey: mockPublicKey,
-      });
-      expect(deviceIdServiceMock.getDeviceId).toHaveBeenCalled();
-      expect(rsaKeyServiceMock.getPublicKey).toHaveBeenCalled();
-    });
-
-    it('should handle empty deviceId and publicKey gracefully', () => {
-      deviceIdServiceMock.getDeviceId.mockReturnValue('');
-      rsaKeyServiceMock.getPublicKey.mockReturnValue('');
-
-      const request = service['generateRequest']();
-
-      expect(request).toEqual({
-        deviceId: '',
-        publicKey: '',
-      });
-      expect(deviceIdServiceMock.getDeviceId).toHaveBeenCalled();
-      expect(rsaKeyServiceMock.getPublicKey).toHaveBeenCalled();
+    service.registerDevice().subscribe((response) => {
+      expect(response).toEqual(mockSuccessResponse);
+      expect(cpxHttpService.post).toHaveBeenCalledTimes(2);
+      expect(rsaKeyService.generateKeyPair).toHaveBeenCalledTimes(1);
+      done();
     });
   });
 
-  describe('error handling', () => {
-    it('should retry registration if attempt fails once', (done) => {
-      const mockResponse = { body: { status: 'Device Not Registered' } };
-      httpClientMock.post
-        .mockReturnValueOnce(throwError(new Error('First attempt failed')))
-        .mockReturnValueOnce(of(mockResponse));
+  it('should propagate error on registration failure', (done) => {
+    const mockError = new Error('Registration failed');
+    cpxHttpService.post.mockReturnValue(throwError(() => mockError));
 
-      service.registerDevice().subscribe((response) => {
-        expect(response).toEqual(mockResponse);
-        expect(httpClientMock.post).toHaveBeenCalledTimes(2);
+    service.registerDevice().subscribe({
+      next: () => {},
+      error: (error) => {
+        expect(error).toBe(mockError);
+        expect(cpxHttpService.post).toHaveBeenCalledTimes(1);
         done();
-      });
+      }
     });
+  });
 
-    it('should stop retrying after two attempts if the response is still an error', (done) => {
-      const errorResponse = new Error('Persistent error');
-      httpClientMock.post.mockReturnValue(throwError(errorResponse));
+  it('should call generateRequest to get deviceId and publicKey', () => {
+    const request = service['generateRequest']();
+    expect(request.deviceId).toBe('testDeviceId');
+    expect(request.publicKey).toBe('testPublicKey');
+  });
 
-      service.registerDevice().subscribe({
-        error: (error) => {
-          expect(error).toBe(errorResponse);
-          expect(httpClientMock.post).toHaveBeenCalledTimes(2);
-          done();
-        },
-      });
-    });
+  it('should check if device is already registered', () => {
+    const response = new HttpResponse<DeviceRegistrationApiRes>({ body: { status: 'Device Already Registered' } });
+    expect(service['isDeviceAlreadyRegistered'](response)).toBe(true);
   });
 });
