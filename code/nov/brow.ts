@@ -1,57 +1,63 @@
-import { InAppBrowserWeb } from './inappbrowser.plugin';
+import { TestBed } from '@angular/core/testing';
+import { TranslateService } from '@ngx-translate/core';
+import { InAppBrowserService } from 'path-to-inappbrowser.service';
 
-describe('InAppBrowserWeb', () => {
-  let inAppBrowser: InAppBrowserWeb;
+describe('LGS', () => {
+  let component: LGS;
+  let inAppBrowserServiceMock: jest.Mocked<InAppBrowserService>;
+  let translateServiceMock: jest.Mocked<TranslateService>;
 
   beforeEach(() => {
-    inAppBrowser = new InAppBrowserWeb();
+    // Mock InAppBrowserService
+    inAppBrowserServiceMock = {
+      openURL: jest.fn(),
+    } as unknown as jest.Mocked<InAppBrowserService>;
+
+    // Mock TranslateService
+    translateServiceMock = {
+      currentLang: 'en',
+    } as unknown as jest.Mocked<TranslateService>;
+
+    TestBed.configureTestingModule({
+      providers: [
+        LGS,
+        { provide: InAppBrowserService, useValue: inAppBrowserServiceMock },
+        { provide: TranslateService, useValue: translateServiceMock },
+      ],
+    });
+
+    component = TestBed.inject(LGS);
   });
 
-  describe('open', () => {
-    it('should call window.open with the correct parameters', () => {
-      // Mock window.open
-      const mockWindowOpen = jest.fn();
-      window.open = mockWindowOpen;
+  describe('openURL', () => {
+    it('should call openURL with "fr" if current language is French', () => {
+      translateServiceMock.currentLang = 'fr';
 
-      const options = { url: 'https://example.com', target: '_blank' };
-      inAppBrowser.open(options);
+      component.openURL();
 
-      expect(mockWindowOpen).toHaveBeenCalledWith(options.url, options.target);
-    });
-  });
-
-  describe('close', () => {
-    it('should call close on the opened window', () => {
-      const mockClose = jest.fn();
-      const mockWindow: Partial<Window> = { close: mockClose };
-
-      (inAppBrowser as any).win = mockWindow as Window;
-      inAppBrowser.close();
-
-      expect(mockClose).toHaveBeenCalled();
+      expect(inAppBrowserServiceMock.openURL).toHaveBeenCalledWith({
+        url: 'fr',
+        dismissDialog: true,
+      });
     });
 
-    it('should not throw if there is no window to close', () => {
-      (inAppBrowser as any).win = null;
-      expect(() => inAppBrowser.close()).not.toThrow();
-    });
-  });
+    it('should call openURL with "en" if current language is English', () => {
+      translateServiceMock.currentLang = 'en';
 
-  describe('unimplemented methods', () => {
-    it('should throw "Not implemented on web" for openURL', async () => {
-      await expect(inAppBrowser.openURL({})).rejects.toThrow('Not implemented on web');
-    });
+      component.openURL();
 
-    it('should throw "Not implemented on web" for openHTML', async () => {
-      await expect(inAppBrowser.openHTML({})).rejects.toThrow('Not implemented on web');
+      expect(inAppBrowserServiceMock.openURL).toHaveBeenCalledWith({
+        url: 'en',
+        dismissDialog: true,
+      });
     });
 
-    it('should throw "Not implemented on web" for nativeToJS', async () => {
-      await expect(inAppBrowser.nativeToJS({})).rejects.toThrow('Not implemented on web');
-    });
+    it('should not call openURL if current language is neither French nor English', () => {
+      translateServiceMock.currentLang = 'es';
 
-    it('should throw "Not implemented on web" for captureCardNumber', async () => {
-      await expect(inAppBrowser.captureCardNumber({})).rejects.toThrow('Not implemented on web');
+      component.openURL();
+
+      expect(inAppBrowserServiceMock.openURL).not.toHaveBeenCalled();
     });
   });
 });
