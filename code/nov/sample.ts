@@ -1,103 +1,34 @@
-import { Component } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { PersonalInfoConfig } from './personal-info.config';
+import { Validators } from '@angular/forms';
 
-@Component({
-  selector: 'app-my-component',
-  template: `
-    <div [innerHTML]="translatedText"></div>
-  `,
-})
-export class MyComponent {
-  translatedText: string = '';
+describe('PersonalInfoConfig', () => {
+    let config: PersonalInfoConfig;
 
-  constructor(private translate: TranslateService) {}
+    beforeEach(() => {
+        config = new PersonalInfoConfig();
+    });
 
-  ngOnInit(): void {
-    this.loadTranslation();
-  }
+    it('should be created', () => {
+        expect(config).toBeTruthy();
+    });
 
-  loadTranslation(): void {
-    // Fetch the translated "mytext" with the translated "link"
-    this.translate
-      .get('mytext', {
-        link: `<a href="javascript:void(0)" class="clickable" (click)="handleClick()">` + this.translate.instant('link') + `</a>`,
-      })
-      .subscribe((translated: string) => {
-        this.translatedText = translated;
-      });
-  }
+    it('should have required validator for firstNameValidators', () => {
+        expect(config.firstNameValidators).toContain(Validators.required);
+        expect(config.firstNameValidators.length).toBe(1);
+    });
 
-  handleClick(): void {
-    console.log('Link clicked!');
-    // Add your logic here
-  }
-}
+    it('should have no validators for middleNameValidators', () => {
+        expect(config.middleNameValidators).toEqual([]);
+        expect(config.middleNameValidators.length).toBe(0);
+    });
 
+    it('should have required validator for lastNameValidators', () => {
+        expect(config.lastNameValidators).toContain(Validators.required);
+        expect(config.lastNameValidators.length).toBe(1);
+    });
 
--------------
-import { TestBed } from '@angular/core/testing';
-import { MyComponent } from './my-component.component';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { of } from 'rxjs';
-import { By } from '@angular/platform-browser';
-
-describe('MyComponent', () => {
-  let component: MyComponent;
-  let translateService: TranslateService;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [MyComponent],
-      imports: [TranslateModule.forRoot()], // Include TranslateModule for testing
-      providers: [TranslateService],
-    }).compileComponents();
-
-    const fixture = TestBed.createComponent(MyComponent);
-    component = fixture.componentInstance;
-    translateService = TestBed.inject(TranslateService);
-  });
-
-  it('should create the component', () => {
-    expect(component).toBeTruthy();
-  });
-
-  it('should load and render translated text with dynamic link', () => {
-    // Mock TranslateService.get and TranslateService.instant
-    jest.spyOn(translateService, 'get').mockReturnValue(
-      of('hello my world <a href="javascript:void(0)" class="clickable" id="test-link">link</a>')
-    );
-    jest.spyOn(translateService, 'instant').mockReturnValue('link');
-
-    // Trigger ngOnInit
-    component.ngOnInit();
-
-    // Assert the translatedText is correctly set
-    expect(component.translatedText).toContain('hello my world');
-    expect(component.translatedText).toContain('<a href="javascript:void(0)" class="clickable" id="test-link">link</a>');
-  });
-
-  it('should call handleClick when the link is clicked', () => {
-    // Mock TranslateService.get and TranslateService.instant
-    jest.spyOn(translateService, 'get').mockReturnValue(
-      of('hello my world <a href="javascript:void(0)" class="clickable" id="test-link">link</a>')
-    );
-    jest.spyOn(translateService, 'instant').mockReturnValue('link');
-
-    // Spy on handleClick
-    const handleClickSpy = jest.spyOn(component, 'handleClick');
-
-    // Trigger ngOnInit
-    component.ngOnInit();
-
-    // Simulate a click on the link by querying the dynamic HTML
-    const htmlElement = document.createElement('div');
-    htmlElement.innerHTML = component.translatedText;
-    const link = htmlElement.querySelector('#test-link') as HTMLElement;
-
-    // Simulate the click event
-    link.click();
-
-    // Assert the handleClick method was called
-    expect(handleClickSpy).toHaveBeenCalled();
-  });
+    it('should have required validator for dobValidators', () => {
+        expect(config.dobValidators).toContain(Validators.required);
+        expect(config.dobValidators.length).toBe(1);
+    });
 });
