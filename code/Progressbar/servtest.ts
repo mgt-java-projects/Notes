@@ -1,10 +1,7 @@
+import { ProgressBarService } from './progress-bar.service'; // Replace with your actual path
 import { createSpyObj } from 'jest-create-spyobj';
 
-export const MockProgressBarService = createSpyObj('ProgressBarService', [
-  'showLabel$', 
-  'label$', 
-  'showPercentageLabel$', 
-  'percentageValue$', 
+export const MockProgressBarService: Partial<ProgressBarService> = createSpyObj('ProgressBarService', [
   'init', 
   'setShowLabel', 
   'setLabel', 
@@ -13,34 +10,33 @@ export const MockProgressBarService = createSpyObj('ProgressBarService', [
   'incrementCurrentPage'
 ]);
 
-MockProgressBarService.showLabel$ = jest.fn();
-MockProgressBarService.label$ = jest.fn();
-MockProgressBarService.showPercentageLabel$ = jest.fn();
-MockProgressBarService.percentageValue$ = jest.fn();
+// Mock Observables
+MockProgressBarService.showLabel$ = jest.fn(() => new BehaviorSubject(false).asObservable());
+MockProgressBarService.label$ = jest.fn(() => new BehaviorSubject('').asObservable());
+MockProgressBarService.showPercentageLabel$ = jest.fn(() => new BehaviorSubject(false).asObservable());
+MockProgressBarService.percentageValue$ = jest.fn(() => new BehaviorSubject(0).asObservable());
 
-// Mock implementations for testing
-MockProgressBarService.init.mockImplementation((currentPage, totalPages, showPercentage) => {
+// Add specific mock implementations for testing, if required
+MockProgressBarService.init = jest.fn((currentPage: number, totalPages: number, showPercentage: boolean) => {
   console.log(`Initializing with currentPage: ${currentPage}, totalPages: ${totalPages}, showPercentage: ${showPercentage}`);
 });
 
-MockProgressBarService.setShowLabel.mockImplementation((show) => {
+MockProgressBarService.setShowLabel = jest.fn((show: boolean) => {
   console.log(`Setting showLabel to: ${show}`);
 });
 
-MockProgressBarService.setLabel.mockImplementation((label) => {
+MockProgressBarService.setLabel = jest.fn((label: string) => {
   console.log(`Setting label to: ${label}`);
 });
 
-MockProgressBarService.setShowPercentageLabel.mockImplementation((show) => {
+MockProgressBarService.setShowPercentageLabel = jest.fn((show: boolean) => {
   console.log(`Setting showPercentageLabel to: ${show}`);
 });
 
-MockProgressBarService.reset.mockImplementation(() => {
+MockProgressBarService.reset = jest.fn(() => {
   console.log('Resetting progress bar');
 });
 
-MockProgressBarService.incrementCurrentPage.mockImplementation((currentPage, newLabel) => {
+MockProgressBarService.incrementCurrentPage = jest.fn((currentPage?: number, newLabel?: string) => {
   console.log(`Incrementing currentPage to: ${currentPage}, newLabel: ${newLabel}`);
 });
-
-export default MockProgressBarService;
