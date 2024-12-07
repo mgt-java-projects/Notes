@@ -11,94 +11,91 @@ describe('ProgressBarService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should reset progress bar to default state', () => {
-    service.setTotalPages(5);
-    service.setCurrentPage(3);
-    service.setLabel('Step 3 of 5');
-    service.setShowLabel(true);
+  it('should initialize the progress bar', () => {
+    jest.spyOn(service, 'setShowPercentageLabel');
+    service.init(1, 5, true);
 
-    service.reset();
-
-    service.currentPage$.subscribe((currentPage) => {
-      expect(currentPage).toBe(0);
-    });
-    service.label$.subscribe((label) => {
-      expect(label).toBe('');
-    });
-    service.showLabel$.subscribe((showLabel) => {
-      expect(showLabel).toBe(false);
-    });
-  });
-
-  it('should set total pages', () => {
-    service.setTotalPages(5);
+    expect(service['currentPage']).toBe(1);
     expect(service['totalPages']).toBe(5);
-  });
+    expect(service.setShowPercentageLabel).toHaveBeenCalledWith(true);
 
-  it('should set current page', () => {
-    service.setTotalPages(5);
-    service.setCurrentPage(3);
-    service.currentPage$.subscribe((currentPage) => {
-      expect(currentPage).toBe(3);
+    service.percentageValue$.subscribe((value) => {
+      expect(value).toBe(20); // 1/5 = 20%
     });
   });
 
-  it('should throw an error if current page exceeds total pages', () => {
-    service.setTotalPages(3);
-    expect(() => service.setCurrentPage(4)).toThrowError(
-      'Current page (4) cannot be greater than total pages (3).'
+  it('should increment the current page and update percentage', () => {
+    service.init(1, 5, true);
+
+    service.incrementCurrentPage();
+
+    expect(service['currentPage']).toBe(2);
+
+    service.percentageValue$.subscribe((value) => {
+      expect(value).toBe(40); // 2/5 = 40%
+    });
+  });
+
+  it('should increment the current page and set a label', () => {
+    jest.spyOn(service, 'setLabel');
+    jest.spyOn(service, 'setShowLabel');
+    service.init(1, 5, true);
+
+    service.incrementCurrentPage('Step 2 of 5');
+
+    expect(service['currentPage']).toBe(2);
+
+    service.percentageValue$.subscribe((value) => {
+      expect(value).toBe(40); // 2/5 = 40%
+    });
+
+    expect(service.setLabel).toHaveBeenCalledWith('Step 2 of 5');
+    expect(service.setShowLabel).toHaveBeenCalledWith(true);
+  });
+
+  it('should throw an error if increment exceeds total pages', () => {
+    service.init(5, 5, true);
+
+    expect(() => service.incrementCurrentPage()).toThrowError(
+      'Incremented page (6) exceeds total pages (5).'
     );
   });
 
-  it('should increment current page by 1 without label', () => {
-    service.setTotalPages(5);
-    service.setCurrentPage(2);
+  it('should reset the progress bar state', () => {
+    jest.spyOn(service, 'setLabel');
+    jest.spyOn(service, 'setShowLabel');
+    jest.spyOn(service, 'setShowPercentageLabel');
+
+    service.init(2, 5, true);
+    service.reset();
+
+    expect(service['currentPage']).toBe(0);
+
+    service.percentageValue$.subscribe((value) => {
+      expect(value).toBe(0); // Reset to 0%
+    });
+
+    expect(service.setLabel).toHaveBeenCalledWith('');
+    expect(service.setShowLabel).toHaveBeenCalledWith(false);
+    expect(service.setShowPercentageLabel).toHaveBeenCalledWith(false);
+  });
+
+  it('should update the percentage value when the current page changes', () => {
+    service.init(1, 5, true);
+
     service.incrementCurrentPage();
-    service.currentPage$.subscribe((currentPage) => {
-      expect(currentPage).toBe(3);
+    service.percentageValue$.subscribe((value) => {
+      expect(value).toBe(40); // 2/5 = 40%
     });
-    service.label$.subscribe((label) => {
-      expect(label).toBe('');
-    });
-    service.showLabel$.subscribe((showLabel) => {
-      expect(showLabel).toBe(false);
+
+    service.incrementCurrentPage();
+    service.percentageValue$.subscribe((value) => {
+      expect(value).toBe(60); // 3/5 = 60%
     });
   });
 
-  it('should increment current page by 1 and set a label', () => {
-    service.setTotalPages(5);
-    service.setCurrentPage(2);
-    service.incrementCurrentPage(undefined, 'Step 3 of 5');
-    service.currentPage$.subscribe((currentPage) => {
-      expect(currentPage).toBe(3);
-    });
-    service.label$.subscribe((label) => {
-      expect(label).toBe('Step 3 of 5');
-    });
-    service.showLabel$.subscribe((showLabel) => {
-      expect(showLabel).toBe(true);
-    });
-  });
-
-  it('should set current page to a specific value and reset label', () => {
-    service.setTotalPages(5);
-    service.incrementCurrentPage(4);
-    service.currentPage$.subscribe((currentPage) => {
-      expect(currentPage).toBe(4);
-    });
-    service.label$.subscribe((label) => {
-      expect(label).toBe('');
-    });
-    service.showLabel$.subscribe((showLabel) => {
-      expect(showLabel).toBe(false);
-    });
-  });
-
-  it('should not allow incrementCurrentPage to exceed total pages', () => {
-    service.setTotalPages(3);
-    service.setCurrentPage(3);
-    expect(() => service.incrementCurrentPage()).toThrowError(
-      'Incremented page (4) exceeds total pages (3).'
+  it('should throw an error if current page is set beyond total pages', () => {
+    expect(() => service  'Current page (6) cannot be greater than total pages (5).'
     );
   });
 });
@@ -113,21 +110,39 @@ export class MockProgressBarService {
   totalPages = 3;
   label = '';
   showLabel = false;
-  showPercentage = false;
+  showPercentageLabel = false;
+  percentageValue = 0;
 
   currentPage$ = of(this.currentPage);
   showLabel$ = of(this.showLabel);
-  showPercentage$ = of(this.showPercentage);
+  showPercentageLabel$ = of(this.showPercentageLabel);
   label$ = of(this.label);
+  percentageValue$ = of(this.percentageValue);
 
-  setTotalPages = jest.fn((pages: number) => (this.totalPages = pages));
-  setCurrentPage = jest.fn((page: number) => (this.currentPage = page));
-  incrementCurrentPage = jest.fn(() => {
-    if (this.currentPage < this.totalPages) this.currentPage++;
+  setTotalPages = jest.fn((pages: number) => {
+    this.totalPages = pages;
+    this.updatePercentageValue(); // Update percentage when total pages change
   });
+
+  setCurrentPage = jest.fn((page: number) => {
+    if (page > this.totalPages) {
+      throw new Error(`Current page (${page}) cannot be greater than total pages (${this.totalPages}).`);
+    }
+    this.currentPage = page;
+    this.updatePercentageValue(); // Update percentage when current page changes
+  });
+
+  incrementCurrentPage = jest.fn(() => {
+    if (this.currentPage + 1 > this.totalPages) {
+      throw new Error(`Incremented page (${this.currentPage + 1}) exceeds total pages (${this.totalPages}).`);
+    }
+    this.currentPage++;
+    this.updatePercentageValue(); // Update percentage after increment
+  });
+
   setLabel = jest.fn((label: string) => (this.label = label));
   setShowLabel = jest.fn((show: boolean) => (this.showLabel = show));
-  setShowPercentage = jest.fn((show: boolean) => (this.showPercentage = show));
+  setShowPercentageLabel = jest.fn((show: boolean) => (this.showPercentageLabel = show));
 
   /**
    * Resets the progress bar state to default values.
@@ -136,6 +151,16 @@ export class MockProgressBarService {
     this.currentPage = 0;
     this.label = '';
     this.showLabel = false;
-    this.showPercentage = false;
+    this.showPercentageLabel = false;
+    this.percentageValue = 0;
+  });
+
+  /**
+   * Updates the percentage value based on the current page and total pages.
+   */
+  private updatePercentageValue = jest.fn(() => {
+    this.percentageValue = this.totalPages > 0
+      ? Math.round((this.currentPage / this.totalPages) * 100)
+      : 0;
   });
 }

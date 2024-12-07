@@ -21,9 +21,16 @@ export class LayoutComponent implements OnInit, OnDestroy {
    * to dynamically update the progress bar in the header.
    */
   ngOnInit(): void {
+    this.progressBarValueUpdate();
+  }
+
+  /**
+   * Subscribes to all progress bar service observables.
+   */
+  private progressBarValueUpdate(): void {
     this.subscriptions.add(
-      this.progressBarService.currentPage$.subscribe(() => {
-        this.progressPercentage = this.progressBarService.getProgressValue();
+      this.progressBarService.percentageValue$.subscribe((percentage) => {
+        this.progressPercentage = percentage;
       })
     );
 
@@ -49,75 +56,64 @@ export class LayoutComponent implements OnInit, OnDestroy {
 }
 
 
-  -----
-  import { ComponentFixture, TestBed } from '@angular/core/testing';
-  import { LayoutComponent } from './layout.component';
-  import { ProgressBarService } from './progress-bar.service';
-  import { MockProgressBarService } from './mock-progress-bar.service';
-  
-  describe('LayoutComponent', () => {
-    let component: LayoutComponent;
-    let fixture: ComponentFixture<LayoutComponent>;
-    let mockService: MockProgressBarService;
-  
-    beforeEach(async () => {
-      await TestBed.configureTestingModule({
-        declarations: [LayoutComponent],
-        providers: [
-          { provide: ProgressBarService, useClass: MockProgressBarService },
-        ],
-      }).compileComponents();
-  
-      fixture = TestBed.createComponent(LayoutComponent);
-      component = fixture.componentInstance;
-      mockService = TestBed.inject(ProgressBarService) as MockProgressBarService;
-  
-      fixture.detectChanges(); // Trigger ngOnInit
-    });
-  
-    it('should create the component', () => {
-      expect(component).toBeTruthy();
-    });
-  
-    it('should subscribe to progress updates on initialization', () => {
-      jest.spyOn(mockService, 'currentPage$');
-      jest.spyOn(mockService, 'showLabel$');
-      jest.spyOn(mockService, 'label$');
-  
-      component.ngOnInit();
-  
-      expect(mockService.currentPage$).toBeTruthy();
-      expect(mockService.showLabel$).toBeTruthy();
-      expect(mockService.label$).toBeTruthy();
-    });
-  
-    it('should update progressPercentage based on current page', () => {
-      jest.spyOn(mockService, 'getProgressValue').mockReturnValue(50);
-  
-      mockService.setCurrentPage(2); // Simulate progress update
-      fixture.detectChanges();
-  
-      expect(component.progressPercentage).toBe(50);
-    });
-  
-    it('should update progressShowLabel based on service', () => {
-      mockService.setShowLabel(true);
-      fixture.detectChanges();
-  
-      expect(component.progressShowLabel).toBe(true);
-    });
-  
-    it('should update progressLabel based on service', () => {
-      mockService.setLabel('Step 2 of 5');
-      fixture.detectChanges();
-  
-      expect(component.progressLabel).toBe('Step 2 of 5');
-    });
-  
-    it('should unsubscribe on component destruction', () => {
-      const unsubscribeSpy = jest.spyOn(component['subscriptions'], 'unsubscribe');
-      component.ngOnDestroy();
-      expect(unsubscribeSpy).toHaveBeenCalled();
-    });
+-------
+
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { LayoutComponent } from './layout.component';
+import { ProgressBarService } from './progress-bar.service';
+import { MockProgressBarService } from './mock-progress-bar.service';
+
+describe('LayoutComponent', () => {
+  let component: LayoutComponent;
+  let fixture: ComponentFixture<LayoutComponent>;
+  let mockService: MockProgressBarService;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [LayoutComponent],
+      providers: [
+        { provide: ProgressBarService, useClass: MockProgressBarService },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(LayoutComponent);
+    component = fixture.componentInstance;
+    mockService = TestBed.inject(ProgressBarService) as MockProgressBarService;
+
+    fixture.detectChanges(); // Trigger ngOnInit
   });
-  
+
+  it('should create the component', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should call progressBarValueUpdate on initialization', () => {
+    const spy = jest.spyOn(component as any, 'progressBarValueUpdate');
+    component.ngOnInit();
+    expect(spy).toHaveBeenCalled();
+  });
+
+  it('should subscribe to percentageValue$ and update progressPercentage', () => {
+    mockService.percentageValue = 40; // Simulate percentage
+    fixture.detectChanges();
+    expect(component.progressPercentage).toBe(40);
+  });
+
+  it('should update progressShowLabel when showLabel$ emits', () => {
+    mockService.showLabel = true; // Simulate showLabel$
+    fixture.detectChanges();
+    expect(component.progressShowLabel).toBe(true);
+  });
+
+  it('should update progressLabel when label$ emits', () => {
+    mockService.label = 'Step 2 of 5'; // Simulate label$
+    fixture.detectChanges();
+    expect(component.progressLabel).toBe('Step 2 of 5');
+  });
+
+  it('should unsubscribe from all subscriptions on destroy', () => {
+    const unsubscribeSpy = jest.spyOn(component['subscriptions'], 'unsubscribe');
+    component.ngOnDestroy();
+    expect(unsubscribeSpy).toHaveBeenCalled();
+  });
+});

@@ -6,17 +6,12 @@ import { BehaviorSubject, Observable } from 'rxjs';
 })
 export class ProgressBarService {
   private totalPages = 0;
+  private currentPage = 0; // Current page is a simple number, only update with set method.
 
-  private currentPageSubject = new BehaviorSubject<number>(0);
   private showLabelSubject = new BehaviorSubject<boolean>(false);
   private labelSubject = new BehaviorSubject<string>('');
-
-  /**
-   * Observable to get the current page value.
-   */
-  get currentPage$(): Observable<number> {
-    return this.currentPageSubject.asObservable();
-  }
+  private showPercentageLabelSubject = new BehaviorSubject<boolean>(false);
+  private percentageValueSubject = new BehaviorSubject<number>(0);
 
   /**
    * Observable to get the display state of the label.
@@ -33,22 +28,29 @@ export class ProgressBarService {
   }
 
   /**
-   * Sets the total number of pages for the progress bar.
-   * @param pages Total number of pages.
+   * Observable to get the display state of the percentage label.
    */
-  setTotalPages(pages: number): void {
-    this.totalPages = pages;
+  get showPercentageLabel$(): Observable<boolean> {
+    return this.showPercentageLabelSubject.asObservable();
   }
 
   /**
-   * Sets the current page to the given value.
-   * @param page The page to set as the current page.
+   * Observable to get the progress percentage value.
    */
-  setCurrentPage(page: number): void {
-    if (page > this.totalPages) {
-      throw new Error(`Current page (${page}) cannot be greater than total pages (${this.totalPages}).`);
-    }
-    this.currentPageSubject.next(page);
+  get percentageValue$(): Observable<number> {
+    return this.percentageValueSubject.asObservable();
+  }
+
+  /**
+   * Initializes the progress bar with current page, total pages, and whether to show percentage.
+   * @param currentPage The current page to initialize.
+   * @param totalPages The total number of pages.
+   * @param showPercentage Whether to show the percentage label.
+   */
+  init(currentPage: number, totalPages: number, showPercentage: boolean): void {
+    this.totalPages = totalPages;
+    this.setShowPercentageLabel(showPercentage);
+    this.setCurrentPage(currentPage); // Ensure percentage is updated
   }
 
   /**
@@ -68,14 +70,24 @@ export class ProgressBarService {
   }
 
   /**
+   * Updates the display state of the percentage label.
+   * @param show Whether to display the percentage label.
+   */
+  setShowPercentageLabel(show: boolean): void {
+    this.showPercentageLabelSubject.next(show);
+  }
+
+  /**
    * Resets the progress bar to its default state.
    * - Sets the current page to 0.
    * - Clears the label and hides it.
+   * - Clears the percentage value.
    */
   reset(): void {
-    this.setCurrentPage(0);
     this.setLabel('');
     this.setShowLabel(false);
+    this.setShowPercentageLabel(false);
+    this.setCurrentPage(0); // Reset the percentage
   }
 
   /**
@@ -100,7 +112,7 @@ export class ProgressBarService {
       this.setShowLabel(false);
     } else if (newLabel !== undefined) {
       // Increment current page and set label
-      const incrementedPage = this.currentPageSubject.value + 1;
+      const incrementedPage = this.currentPage + 1;
       if (incrementedPage > this.totalPages) {
         throw new Error(`Incremented page (${incrementedPage}) exceeds total pages (${this.totalPages}).`);
       }
@@ -109,7 +121,7 @@ export class ProgressBarService {
       this.setShowLabel(true);
     } else {
       // Increment current page only
-      const incrementedPage = this.currentPageSubject.value + 1;
+      const incrementedPage = this.currentPage + 1;
       if (incrementedPage > this.totalPages) {
         throw new Error(`Incremented page (${incrementedPage}) exceeds total pages (${this.totalPages}).`);
       }
@@ -117,5 +129,26 @@ export class ProgressBarService {
       this.setLabel('');
       this.setShowLabel(false);
     }
+  }
+
+  /**
+   * Sets the current page to the given value (private).
+   * Updates the progress percentage value.
+   * @param page The page to set as the current page.
+   */
+  private setCurrentPage(page: number): void {
+    if (page > this.totalPages) {
+      throw new Error(`Current page (${page}) cannot be greater than total pages (${this.totalPages}).`);
+    }
+    this.currentPage = page;
+    this.updatePercentageValue(); // Update percentage whenever the current page changes only
+  }
+
+  /**
+   * Calculates and updates the percentage value based on the current page and total pages.
+   */
+  private updatePercentageValue(): void {
+    const percentage = this.totalPages > 0 ? Math.round((this.currentPage / this.totalPages) * 100) : 0;
+    this.percentageValueSubject.next(percentage);
   }
 }

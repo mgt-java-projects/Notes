@@ -1,21 +1,30 @@
+import { Component, OnInit } from '@angular/core';
+import { ProgressBarService } from './progress-bar.service';
+
+@Component({
+  selector: 'app-personal-info',
+  templateUrl: './personal-info.component.html',
+  styleUrls: ['./personal-info.component.css'],
+})
+export class PersonalInfoComponent implements OnInit {
+  constructor(private progressBarService: ProgressBarService) {}
+
   /**
    * Initialize the progress bar for the personal info page.
    */
   ngOnInit(): void {
-    // Reset progress bar state
-    this.progressBarService.reset();
+    // Initialize progress bar state
+    this.progressBarService.init(0, 0, false);
 
-    // Set total pages for the progress
-    this.progressBarService.setTotalPages(5);
-
-    // Increment the current page and set progress
+    // Increment the current page and update progress
     this.progressBarService.incrementCurrentPage();
-    this.progressBarService.setLabel('Step 1 of 5'); // Set label for the current step
-    this.progressBarService.setShowLabel(true); // Ensure the label is displayed
   }
+}
 
 
-  import { ComponentFixture, TestBed } from '@angular/core/testing';
+------
+
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PersonalInfoComponent } from './personal-info.component';
 import { ProgressBarService } from './progress-bar.service';
 import { MockProgressBarService } from './mock-progress-bar.service';
@@ -36,35 +45,23 @@ describe('PersonalInfoComponent', () => {
     fixture = TestBed.createComponent(PersonalInfoComponent);
     component = fixture.componentInstance;
     mockService = TestBed.inject(ProgressBarService) as MockProgressBarService;
+
+    fixture.detectChanges(); // Trigger ngOnInit
   });
 
   it('should create the component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should reset progress bar on initialization', () => {
-    jest.spyOn(mockService, 'reset');
+  it('should initialize the progress bar using init method', () => {
+    jest.spyOn(mockService, 'init');
     component.ngOnInit();
-    expect(mockService.reset).toHaveBeenCalled();
+    expect(mockService.init).toHaveBeenCalledWith(0, 0, false);
   });
 
-  it('should set total pages on initialization', () => {
-    jest.spyOn(mockService, 'setTotalPages');
-    component.ngOnInit();
-    expect(mockService.setTotalPages).toHaveBeenCalledWith(5);
-  });
-
-  it('should increment the current page on initialization', () => {
+  it('should increment the current page', () => {
     jest.spyOn(mockService, 'incrementCurrentPage');
     component.ngOnInit();
     expect(mockService.incrementCurrentPage).toHaveBeenCalled();
-  });
-
-  it('should set label and show label on initialization', () => {
-    jest.spyOn(mockService, 'setLabel');
-    jest.spyOn(mockService, 'setShowLabel');
-    component.ngOnInit();
-    expect(mockService.setLabel).toHaveBeenCalledWith('Step 1 of 5');
-    expect(mockService.setShowLabel).toHaveBeenCalledWith(true);
   });
 });
