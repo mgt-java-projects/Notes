@@ -113,9 +113,11 @@ export class MockProgressBarService {
   totalPages = 3;
   label = '';
   showLabel = false;
+  showPercentage = false;
 
   currentPage$ = of(this.currentPage);
   showLabel$ = of(this.showLabel);
+  showPercentage$ = of(this.showPercentage);
   label$ = of(this.label);
 
   setTotalPages = jest.fn((pages: number) => (this.totalPages = pages));
@@ -125,6 +127,7 @@ export class MockProgressBarService {
   });
   setLabel = jest.fn((label: string) => (this.label = label));
   setShowLabel = jest.fn((show: boolean) => (this.showLabel = show));
+  setShowPercentage = jest.fn((show: boolean) => (this.showPercentage = show));
 
   /**
    * Resets the progress bar state to default values.
@@ -133,5 +136,6 @@ export class MockProgressBarService {
     this.currentPage = 0;
     this.label = '';
     this.showLabel = false;
+    this.showPercentage = false;
   });
 }
