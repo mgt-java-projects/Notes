@@ -563,8 +563,27 @@ describe('ResponsiveLayoutComponent', () => {
 
 
 -----------
+export interface NextButtonDisplayState {
+  isLoading?: boolean;          // Indicates if the button is in a loading state
+  loadingLabel?: string;        // Label to display during loading
+  isSuccess?: boolean;          // Indicates if the action is successful
+  successLabel?: string;        // Label to display when successful
+  disabled?: boolean;           // If true, disables the button
+  color?: 'primary' | 'secondary'; // Defines the button color
+  innerProjectedText?: string;  // Default text to display inside the button
+  ariaLabel?: string;           // Accessibility label for the button
+}
 
 
+---------
+
+export interface HeaderAreaDisplayState {
+  tertiaryButtonLabel?: string; // Label for the tertiary button (e.g., Help)
+  showLogo?: boolean;           // Determines if the logo should be displayed
+  showBackButton?: boolean;     // Determines if the back button should be displayed
+  showTertiaryButton?: boolean; // Determines if the tertiary button should be displayed
+  showCloseButton?: boolean;    // Determines if the close button should be displayed
+}
 
 
 ----------
