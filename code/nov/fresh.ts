@@ -4,7 +4,7 @@ import { CodeChallengeService } from './code-challenge.service';
 import { JwtService } from './jwt.service';
 import { SessionTokenStorageService } from './session-token-storage.service';
 import { Observable, throwError, of } from 'rxjs';
-import { switchMap, map, catchError } from 'rxjs/operators';
+import { switchMap, map, catchError, from } from 'rxjs/operators';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable({
@@ -30,27 +30,32 @@ export class FreshSessionTokenService {
   /**
    * Execute the full flow: ADSessionCreation -> AuthCodeCreation -> AccessTokenRefreshTokenUsingAuthCode.
    */
-  executeFullFlow(): Observable<any> {
-    let codeVerifier: string;
-
-    // Generate state dynamically
-    const state = uuidv4();
+  performAuthTokenProcess(): Observable<any> {
+    const state = uuidv4(); // Generate state dynamically
 
     return of(null).pipe(
       // Step 1: Generate and use JWT for ADSessionCreation
       switchMap(() => this.adSessionCreation()),
 
-      // Step 2: Create an authorization code
+      // Step 2: Create code verifier and code challenge
       switchMap(() => {
-        codeVerifier = this.codeChallengeService.getCodeVerifier();
-        const codeChallenge = this.codeChallengeService.generateCodeChallenge(codeVerifier);
-        return this.authCodeCreation(this.redirectUri, this.scope, state, codeChallenge);
+        const codeVerifier = this.codeChallengeService.generateCodeVerifier();
+        return from(this.codeChallengeService.generateCodeChallenger(codeVerifier)).pipe(
+          map(codeChallenge => ({ codeVerifier, codeChallenge }))
+        );
       }),
 
-      // Step 3: Exchange auth code for session tokens
-      switchMap(authCode => {
-        return this.accessSessionTokenRefreshTokenUsingAuthCode(authCode, codeVerifier);
-      }),
+      // Step 3: Use codeVerifier and codeChallenge to create an authorization code
+      switchMap(({ codeVerifier, codeChallenge }) =>
+        this.authCodeCreation(this.redirectUri, this.scope, state, codeChallenge).pipe(
+          map(authCode => ({ authCode, codeVerifier }))
+        )
+      ),
+
+      // Step 4: Exchange auth code and code verifier for session tokens
+      switchMap(({ authCode, codeVerifier }) =>
+        this.accessSessionTokenRefreshTokenUsingAuthCode(authCode, codeVerifier)
+      ),
 
       catchError(error => {
         console.error('Error in executeFullFlow:', error);
