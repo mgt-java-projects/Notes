@@ -35,3 +35,13 @@ export class SessionTokenStorageService {
     this.tokenDetails = null;
   }
 }
+
+--------
+export interface TokenDetails {
+    accessToken: string;     // The access token for the session
+    refreshToken: string;    // The refresh token for renewing the session
+    scope: string;           // The scope of the access token
+    expiresIn: number;       // The expiry time (in seconds) for the access token
+    createdTime: Date;       // The time when the token was created
+  }
+  
