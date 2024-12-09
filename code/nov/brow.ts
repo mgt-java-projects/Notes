@@ -587,6 +587,52 @@ export interface HeaderAreaDisplayState {
 
 
 ----------
+
+import { of } from 'rxjs';
+import { jest } from '@jest/globals';
+import { LayoutDisplayStateService } from './layout-display-state.service';
+import { NextButtonDisplayState, HeaderAreaDisplayState } from './interfaces';
+
+export const MockLayoutDisplayStateService = (): jest.Mocked<LayoutDisplayStateService> => {
+  // Create a spy object for the service
+  const mockService = jest.createSpyObj<LayoutDisplayStateService>(
+    'LayoutDisplayStateService',
+    [
+      'initNextButtonState',
+      'initHeaderAreaState',
+      'updateNextButtonState',
+      'updateHeaderAreaState',
+      'resetNextButtonState',
+      'resetHeaderAreaState',
+      'resetAllStates',
+    ]
+  );
+
+  // Provide default values for observables
+  mockService.nextButtonDisplayState$ = of<NextButtonDisplayState>({
+    isLoading: false,
+    loadingLabel: 'LOADING',
+    isSuccess: false,
+    successLabel: 'DONE',
+    disabled: false,
+    color: 'primary',
+    innerProjectedText: 'Next',
+    ariaLabel: 'Next',
+  });
+
+  mockService.headerAreaDisplayState$ = of<HeaderAreaDisplayState>({
+    tertiaryButtonLabel: 'Help',
+    showLogo: true,
+    showBackButton: true,
+    showTertiaryButton: true,
+    showCloseButton: true,
+  });
+
+  return mockService;
+};
+
+
+-----------
 Old
 
 ---------
