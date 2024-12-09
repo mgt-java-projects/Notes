@@ -33,3 +33,43 @@ export class JwtService {
     }
   }
 }
+
+
+---------------
+
+import { Injectable } from '@angular/core';
+import { SignJWT } from 'jose';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class JwtService {
+  constructor() {}
+
+  async generateToken(
+    deviceId: string,
+    publicKey: string,
+    clientId: string,
+    secretKey: string
+  ): Promise<string> {
+    const payload = {
+      deviceId,
+      publicKey,
+      clientID: clientId,
+    };
+
+    try {
+      const token = await new SignJWT(payload)
+        .setProtectedHeader({
+          alg: 'HS256', // Use HMAC SHA-256 for signing
+          typ: 'JWT',
+        })
+        .setExpirationTime('2h')
+        .sign(new TextEncoder().encode(secretKey)); // Encode secretKey as Uint8Array
+      return token;
+    } catch (error) {
+      console.error('Error generating JWT token:', error);
+      throw new Error('Failed to generate token');
+    }
+  }
+}

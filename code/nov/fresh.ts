@@ -8,7 +8,7 @@ import { switchMap, map, catchError, from } from 'rxjs/operators';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class FreshSessionTokenService {
   private readonly clientId = 'your-client-id';
@@ -28,7 +28,7 @@ export class FreshSessionTokenService {
   ) {}
 
   /**
-   * Execute the full flow: ADSessionCreation -> AuthCodeCreation -> AccessTokenRefreshTokenUsingAuthCode.
+   * Perform the full flow: ADSessionCreation -> AuthCodeCreation -> AccessTokenRefreshTokenUsingAuthCode.
    */
   performAuthTokenProcess(): Observable<any> {
     const state = uuidv4(); // Generate state dynamically
@@ -58,24 +58,35 @@ export class FreshSessionTokenService {
       ),
 
       catchError(error => {
-        console.error('Error in executeFullFlow:', error);
+        console.error('Error in performAuthTokenProcess:', error);
         return throwError(() => new Error('Flow execution failed'));
       })
     );
   }
 
   private adSessionCreation(): Observable<void> {
-    // Logic for ADSessionCreation using JWT
-    const jwtToken = this.jwtService.generateToken('deviceId', 'publicKey', this.clientId, 'privateKey');
-    const payload = { JWT: jwtToken, UUID: 'uuid' };
+    // Logic for ADSessionCreation using the new JwtService
+    const deviceId = 'deviceId';
+    const publicKey = 'publicKey';
+    const privateKey = 'privateKey';
 
-    return this.cpxHttpClientService.post(this.adSessionEndpoint, payload, {
-      headers: { 'Content-Type': 'application/json' }
-    }).pipe(
+    return from(
+      this.jwtService.generateToken(deviceId, publicKey, this.clientId, privateKey)
+    ).pipe(
+      switchMap(jwtToken => {
+        const payload = { JWT: jwtToken, UUID: uuidv4() };
+        return this.cpxHttpClientService.post(this.adSessionEndpoint, payload, {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }),
       map(response => {
         if (response.status !== 204) {
           throw new Error('ADSessionCreation failed');
         }
+      }),
+      catchError(error => {
+        console.error('Error in adSessionCreation:', error);
+        throw error;
       })
     );
   }
@@ -95,12 +106,12 @@ export class FreshSessionTokenService {
       client_id: this.clientId,
       response_mode: 'form_post',
       code_challenge: codeChallenge,
-      code_challenge_method: 'S256'
+      code_challenge_method: 'S256',
     };
 
     return this.cpxHttpClientService.post<any>(this.authorizeEndpoint, null, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      params: queryParams
+      params: queryParams,
     }).pipe(
       map(response => {
         const parser = new DOMParser();
@@ -123,11 +134,11 @@ export class FreshSessionTokenService {
       client_secret: this.clientSecret,
       redirect_uri: this.redirectUri,
       code: authCode,
-      code_verifier: codeVerifier
+      code_verifier: codeVerifier,
     };
 
     return this.cpxHttpClientService.post(this.tokenEndpoint, body, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     }).pipe(
       map(response => {
         if (response && response.access_token) {
