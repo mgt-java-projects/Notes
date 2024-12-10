@@ -46,3 +46,56 @@ it('should apply default headers when no headers are provided', () => {
       'Authorization': 'empty', // Default
   });
 });
+
+
+
+app.use(express.urlencoded({ extended: true }));
+// Middleware to parse application/x-www-form-urlencoded
+router.use(express.urlencoded({ extended: true }));
+
+
+const express = require('express');
+const router = express.Router();
+
+// Middleware to parse application/x-www-form-urlencoded
+router.use(express.urlencoded({ extended: true }));
+
+// POST route to create auth token
+router.post('/oauth/oauth20/token', (req, res) => {
+    const {
+        grant_type,
+        client_id,
+        redirect_uri,
+        code,
+        client_secret,
+        code_verifier,
+    } = req.body;
+
+    // Validate the required fields
+    if (
+        !grant_type ||
+        !client_id ||
+        !redirect_uri ||
+        !code ||
+        !client_secret ||
+        !code_verifier
+    ) {
+        return res
+            .status(400)
+            .json({ error: 'Invalid request parameters' });
+    }
+
+    // Response object as specified
+    const response = {
+        access_token: 'LOCAL_TEST_ACCESS_TOKEN',
+        refresh_token: 'LOCAL_TEST_REFRESH_TOKEN',
+        scope: 'launch',
+        token_type: 'bearer',
+        expires_in: 599,
+    };
+
+    // Send the response
+    res.status(200).json(response);
+});
+
+module.exports = router;
