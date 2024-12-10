@@ -1,23 +1,27 @@
-private getCommonHeaders(options: HttpClientOptions = {}): HttpClientOptions {
-  const defaultHeaders = {
+pprivate getCommonHeaders(options: HttpClientOptions = {}): HttpClientOptions {
+  const defaultHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
-      'x-request-id': v4(), // Assuming v4 is a UUID generator
+      'x-request-id': v4(), // Generate a default UUID
       'Authorization': 'empty',
   };
 
+  // Override default headers with input headers
   const mergedHeaders = {
-      ...defaultHeaders,
-      ...(options.headers || {}),
+      ...defaultHeaders, // Default headers first
+      ...(options.headers || {}), // Input headers override defaults
   };
 
-  const ret: HttpClientOptions = {
+  // Ensure no duplicate headers
+  const sanitizedHeaders = Object.keys(mergedHeaders).reduce((acc, key) => {
+      acc[key.toLowerCase()] = mergedHeaders[key];
+      return acc;
+  }, {} as Record<string, string>);
+
+  return {
       ...options,
-      headers: mergedHeaders,
+      headers: sanitizedHeaders,
   };
-
-  return ret;
 }
-
 
 it('should merge headers correctly in getCommonHeaders', () => {
   const options = {
