@@ -142,3 +142,34 @@ export const MockProgressBarService = {
   /** Mocked incrementCurrentPage method */
   incrementCurrentPage: jest.fn(),
 };
+
+
+import { BehaviorSubject } from 'rxjs';
+
+export const MockProgressBarService = {
+  optionsSubject: new BehaviorSubject({
+    totalPages: 0,
+    currentPage: 0,
+    showLabel: false,
+    label: '',
+    displayPercentageValue: false,
+    percentageValue: 0,
+    displayProgressBar: true,
+  }),
+  
+  get options$() {
+    return this.optionsSubject.asObservable();
+  },
+  
+  init: jest.fn(),
+  updateOptions: jest.fn(),
+  setShowLabel: jest.fn(),
+  setLabel: jest.fn(),
+  setShowPercentageLabel: jest.fn(),
+  incrementCurrentPage: jest.fn(),
+};
+
+
+get nextButtonDisplayState$() {
+  return this.nextButtonDisplayStateSubject.asObservable();
+},
