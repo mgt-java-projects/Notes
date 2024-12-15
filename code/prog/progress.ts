@@ -272,3 +272,9 @@ MockProgressBarService.reset.mockImplementation(() => {
 });
 
 // Optionally, mock additional methods or behaviors here
+MockProgressBarService.init.mockImplementation((options?: Partial<ProgressBarOptions>) => {
+  const { currentPage, totalPages, showPercentage } = options || {};
+  console.log(
+    `Initializing with currentPage: ${currentPage}, totalPages: ${totalPages}, showPercentage: ${showPercentage}`
+  );
+});
