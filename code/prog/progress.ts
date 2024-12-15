@@ -109,172 +109,36 @@ export class ProgressBarService {
 
 ------------
 
-import { TestBed } from '@angular/core/testing';
-import { ProgressBarService } from './progress-bar.service';
 
-describe('ProgressBarService', () => {
-  let service: ProgressBarService;
+import { BehaviorSubject, Observable } from 'rxjs';
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(ProgressBarService);
-  });
+export const MockProgressBarService = {
+  // Observable to mimic options$
+  options$: new BehaviorSubject({
+    totalPages: 0,
+    currentPage: 0,
+    showLabel: false,
+    label: '',
+    displayPercentageValue: false,
+    percentageValue: 0,
+    displayProgressBar: true,
+  }).asObservable(),
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
+  /** Mocked init method */
+  init: jest.fn(),
 
-  it('should initialize with default values', () => {
-    service.init();
-    service.options$.subscribe((options) => {
-      expect(options.totalPages).toBe(0);
-      expect(options.currentPage).toBe(0);
-      expect(options.showLabel).toBe(false);
-      expect(options.label).toBe('');
-      expect(options.displayPercentageValue).toBe(false);
-      expect(options.percentageValue).toBe(0);
-      expect(options.displayProgressBar).toBe(true);
-    });
-  });
+  /** Mocked updateOptions method */
+  updateOptions: jest.fn(),
 
-  it('should update options', () => {
-    service.updateOptions({ currentPage: 5, totalPages: 10 });
-    service.options$.subscribe((options) => {
-      expect(options.currentPage).toBe(5);
-      expect(options.totalPages).toBe(10);
-      expect(options.percentageValue).toBe(50);
-    });
-  });
+  /** Mocked setShowLabel method */
+  setShowLabel: jest.fn(),
 
-  it('should increment current page and update percentage', () => {
-    service.init({ totalPages: 10, currentPage: 3 });
-    service.incrementCurrentPage(4);
-    service.options$.subscribe((options) => {
-      expect(options.currentPage).toBe(4);
-      expect(options.percentageValue).toBe(40);
-    });
-  });
+  /** Mocked setLabel method */
+  setLabel: jest.fn(),
 
-  it('should throw an error if current page exceeds total pages', () => {
-    service.init({ totalPages: 5 });
-    expect(() => service.incrementCurrentPage(6)).toThrowError(
-      'Current page (6) cannot be greater than total pages (5).'
-    );
-  });
+  /** Mocked setShowPercentageLabel method */
+  setShowPercentageLabel: jest.fn(),
 
-  it('should update label and visibility', () => {
-    service.setLabel('Test Label');
-    service.setShowLabel(true);
-    service.options$.subscribe((options) => {
-      expect(options.label).toBe('Test Label');
-      expect(options.showLabel).toBe(true);
-    });
-  });
-
-  it('should toggle percentage label visibility', () => {
-    service.setShowPercentageLabel(true);
-    service.options$.subscribe((options) => {
-      expect(options.displayPercentageValue).toBe(true);
-    });
-  });
-
-  it('should handle partial updates', () => {
-    service.init({ totalPages: 10, currentPage: 1 });
-    service.updateOptions({ showLabel: true });
-    service.options$.subscribe((options) => {
-      expect(options.totalPages).toBe(10);
-      expect(options.currentPage).toBe(1);
-      expect(options.showLabel).toBe(true);
-    });
-  });
-
-  it('should calculate percentage value correctly', () => {
-    service.init({ totalPages: 4, currentPage: 2 });
-    service.options$.subscribe((options) => {
-      expect(options.percentageValue).toBe(50);
-    });
-  });
-});
-
-
-------
-
-import { BehaviorSubject } from 'rxjs';
-import { createSpyObj } from 'jest-mock'; // Assuming Jest is used
-import { ProgressBarService } from '@app/launchpack/core/services/navigation/progress-bar/progress-bar.service';
-
-// Create the spy object with the required methods
-export const MockProgressBarService = createSpyObj<ProgressBarService>(
-  'ProgressBarService',
-  [
-    'init',
-    'setShowLabel',
-    'setLabel',
-    'setShowPercentageLabel',
-    'reset',
-    'incrementCurrentPage',
-  ]
-);
-
-// Mock the observables using BehaviorSubject
-const showLabelSubject = new BehaviorSubject<boolean>(false);
-const labelSubject = new BehaviorSubject<string>('');
-const showPercentageLabelSubject = new BehaviorSubject<boolean>(false);
-const percentageValueSubject = new BehaviorSubject<number>(0);
-
-// Define observable properties on the mock object
-Object.defineProperty(MockProgressBarService, 'showLabels$', {
-  get: () => showLabelSubject.asObservable(),
-});
-Object.defineProperty(MockProgressBarService, 'labels$', {
-  get: () => labelSubject.asObservable(),
-});
-Object.defineProperty(MockProgressBarService, 'showPercentageLabels$', {
-  get: () => showPercentageLabelSubject.asObservable(),
-});
-Object.defineProperty(MockProgressBarService, 'percentageValues$', {
-  get: () => percentageValueSubject.asObservable(),
-});
-
-// Customize mocked methods if needed
-MockProgressBarService.init.mockImplementation(
-  (currentPage: number, totalPages: number, showPercentage: boolean) => {
-    console.log(
-      `Initializing with currentPage: ${currentPage}, totalPages: ${totalPages}, showPercentage: ${showPercentage}`
-    );
-  }
-);
-
-MockProgressBarService.setShowLabel.mockImplementation((show: boolean) => {
-  showLabelSubject.next(show); // Update the observable value for testing
-});
-
-MockProgressBarService.setLabel.mockImplementation((label: string) => {
-  labelSubject.next(label); // Update the observable value for testing
-});
-
-MockProgressBarService.setShowPercentageLabel.mockImplementation(
-  (show: boolean) => {
-    showPercentageLabelSubject.next(show); // Update the observable value for testing
-  }
-);
-
-MockProgressBarService.incrementCurrentPage.mockImplementation(() => {
-  console.log('Incrementing current page...');
-});
-
-MockProgressBarService.reset.mockImplementation(() => {
-  console.log('Resetting progress bar...');
-  showLabelSubject.next(false);
-  labelSubject.next('');
-  showPercentageLabelSubject.next(false);
-  percentageValueSubject.next(0);
-});
-
-// Optionally, mock additional methods or behaviors here
-MockProgressBarService.init.mockImplementation((options?: Partial<ProgressBarOptions>) => {
-  const { currentPage, totalPages, showPercentage } = options || {};
-  console.log(
-    `Initializing with currentPage: ${currentPage}, totalPages: ${totalPages}, showPercentage: ${showPercentage}`
-  );
-});
+  /** Mocked incrementCurrentPage method */
+  incrementCurrentPage: jest.fn(),
+};
