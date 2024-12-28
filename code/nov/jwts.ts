@@ -1,42 +1,31 @@
 import { Injectable } from '@angular/core';
-import { SignJWT, importPKCS8 } from 'jose';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class JwtService {
+
   constructor() {}
 
-  // privateKeyPEM should be an RSA private key in PKCS#8 or PKCS#1 format 
-  // (converted to PKCS#8 if necessary).
-  // E.g., "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG...\n-----END PRIVATE KEY-----"
-  async generateToken(
-    deviceId: string,
-    publicKey: string,
-    clientId: string,
-    privateKeyPEM: string
-  ): Promise<string> {
-    // Prepare the payload
+  generateToken(deviceId: string, publicKey: string, clientId: string, secretKey: string): string {
     const payload = {
-      deviceId,
-      publicKey,
-      clientID: clientId,
+      deviceId: deviceId,
+      publicKey: publicKey,
+      clientID: clientId
     };
 
-    // Convert the PEM-encoded private key string into a CryptoKey
-    // 'RS256' indicates we're using RSA with SHA-256
-    const privateKey = await importPKCS8(privateKeyPEM, 'RS256');
+    const signOptions = {
+      expiresIn: '120',
+      header: {
+        alg: 'RS256',
+        typ: 'JWT',
+        kid: deviceId
+      }
+    };
 
     try {
-      // Create and sign the JWT
-      const token = await new SignJWT(payload)
-        .setProtectedHeader({
-          alg: 'RS256', // RS256 for RSA signature
-          typ: 'JWT',
-        })
-        .setExpirationTime('2h')
-        .sign(privateKey);
-
+      const token = jwt.sign(payload, secretKey, signOptions);
       return token;
     } catch (error) {
       console.error('Error generating JWT token:', error);
@@ -44,3 +33,74 @@ export class JwtService {
     }
   }
 }
+
+
+---------------
+import { Injectable } from '@angular/core';
+import { SignJWT } from 'jose';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class JwtService {
+  constructor() {}
+
+  async generateToken(
+    deviceId: string,
+    publicKey: string,
+    privateKey: string,
+    clientId: string
+  ): Promise<string> {
+    const payload = {
+      deviceId,
+      publicKey,
+      clientID: clientId,
+    };
+
+    try {
+      // Convert the private key to a CryptoKey object
+      const cryptoPrivateKey = await this.importPrivateKey(privateKey);
+
+      // Generate the token using RS256
+      const token = await new SignJWT(payload)
+        .setProtectedHeader({
+          alg: 'RS256', // Use RSA SHA-256 for signing
+          typ: 'JWT',
+        })
+        .setExpirationTime('2h')
+        .sign(cryptoPrivateKey);
+
+      return token;
+    } catch (error) {
+      console.error('Error generating JWT token:', error);
+      throw new Error('Failed to generate token');
+    }
+  }
+
+  /**
+   * Import a PEM-encoded private key to a CryptoKey object
+   * @param pemKey Private key in PEM format
+   * @returns A CryptoKey object
+   */
+  private async importPrivateKey(pemKey: string): Promise<CryptoKey> {
+    // Remove the PEM header and footer, and convert to ArrayBuffer
+    const key = pemKey
+      .replace(/-----BEGIN PRIVATE KEY-----/g, '')
+      .replace(/-----END PRIVATE KEY-----/g, '')
+      .replace(/\n/g, '');
+    const binaryKey = Uint8Array.from(atob(key), (c) => c.charCodeAt(0));
+
+    // Import the key using Web Crypto API
+    return await crypto.subtle.importKey(
+      'pkcs8', // Key format
+      binaryKey.buffer, // Key data
+      {
+        name: 'RSASSA-PKCS1-v1_5', // Algorithm
+        hash: { name: 'SHA-256' }, // Hash algorithm
+      },
+      false, // Extractable
+      ['sign'] // Key usage
+    );
+  }
+}
+
