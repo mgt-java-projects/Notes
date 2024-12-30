@@ -36,6 +36,7 @@ export class JwtService {
 
 
 ---------------
+
 import { Injectable } from '@angular/core';
 import { SignJWT } from 'jose';
 
@@ -51,10 +52,14 @@ export class JwtService {
     privateKey: string,
     clientId: string
   ): Promise<string> {
+    // Remove newlines from the public key
+    const sanitizedPublicKey = publicKey.replace(/\n/g, '');
+
     const payload = {
       deviceId,
-      publicKey,
+      publicKey: sanitizedPublicKey,
       clientID: clientId,
+      iat: Math.floor(Date.now() / 1000), // Issued at (current timestamp in seconds)
     };
 
     try {
@@ -83,7 +88,7 @@ export class JwtService {
    * @returns A CryptoKey object
    */
   private async importPrivateKey(pemKey: string): Promise<CryptoKey> {
-    // Remove the PEM header and footer, and convert to ArrayBuffer
+    // Remove the PEM header, footer, and newlines, and convert to ArrayBuffer
     const key = pemKey
       .replace(/-----BEGIN PRIVATE KEY-----/g, '')
       .replace(/-----END PRIVATE KEY-----/g, '')
