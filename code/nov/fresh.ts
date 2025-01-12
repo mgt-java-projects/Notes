@@ -200,7 +200,6 @@ getWasamHost() {
 
 
 --------------------------
-
 import { TestBed } from '@angular/core/testing';
 import { WasamNewSessionCreationService } from './wasam-new-session-creation.service';
 import { of, throwError } from 'rxjs';
@@ -421,4 +420,7 @@ describe('WasamNewSessionCreationService', () => {
       expect(service.getWasamHost()).toBe('https://mock.wasam.host');
 
       platformInfoServiceMock.isNative = false;
-      expect(service.getWasamHost()).toBe('')
+      expect(service.getWasamHost()).toBe('');
+    });
+  });
+});
