@@ -1,0 +1,11 @@
+The jsonwebtoken (JWT) library is primarily designed for server-side usage. While it can technically run in a client-side (browser) environment, it’s strongly discouraged to store and handle private keys in the client for the following reasons:
+
+Security Risk: Placing private keys in front-end code (browser) means anyone can inspect or steal them, potentially allowing unauthorized token creation.
+
+Best Practice: Industry standards recommend keeping private keys and signing operations on the server side (e.g., Node.js, Python, Java back end). The client typically receives already-signed tokens.
+
+Compliance: Many regulations and corporate policies require sensitive keys to be kept in a secure environment, such as a dedicated server or HSM (Hardware Security Module), not on end-user devices.
+
+In most architectures, jsonwebtoken is used on the server to issue (sign) and verify JWTs, while the client (browser) only reads and sends tokens. If you need JWT signing in a front-end environment, a more browser-compatible library like jose can be used, although the security considerations remain the same—exposing private keys client-side is typically a bad idea.
+
+
