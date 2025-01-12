@@ -113,7 +113,6 @@ export class JwtService {
 
 import { JwtService } from './jwt.service';
 
-// Mock SignJWT from 'jose'
 jest.mock('jose', () => {
   return {
     SignJWT: jest.fn().mockImplementation(() => ({
@@ -124,7 +123,6 @@ jest.mock('jose', () => {
   };
 });
 
-// Mock crypto.subtle.importKey
 const mockImportKey = jest.fn();
 Object.defineProperty(global, 'crypto', {
   value: {
@@ -150,11 +148,12 @@ describe('JwtService', () => {
 
   it('should generate a JWT token successfully', async () => {
     const deviceId = 'device123';
-    const publicKey = 'mockPublicKey\n';
-    const privateKey = 'mockPrivateKey';
+    const publicKey = btoa('mockPublicKey'); // Mock valid Base64 public key
+    const privateKey = `-----BEGIN PRIVATE KEY-----\n${btoa('mockPrivateKey')}\n-----END PRIVATE KEY-----`;
     const clientId = 'client123';
+    const kid = 'key123';
 
-    const token = await service.generateToken(deviceId, publicKey, privateKey, clientId);
+    const token = await service.generateToken(deviceId, publicKey, privateKey, clientId, kid);
 
     expect(token).toBe('mocked_jwt_token');
     expect(mockImportKey).toHaveBeenCalledWith(
@@ -179,12 +178,13 @@ describe('JwtService', () => {
     mockImportKey.mockRejectedValueOnce(new Error('Import key failed'));
 
     const deviceId = 'device123';
-    const publicKey = 'mockPublicKey\n';
-    const privateKey = 'mockPrivateKey';
+    const publicKey = btoa('mockPublicKey');
+    const privateKey = `-----BEGIN PRIVATE KEY-----\n${btoa('mockPrivateKey')}\n-----END PRIVATE KEY-----`;
     const clientId = 'client123';
+    const kid = 'key123';
 
     await expect(
-      service.generateToken(deviceId, publicKey, privateKey, clientId)
+      service.generateToken(deviceId, publicKey, privateKey, clientId, kid)
     ).rejects.toThrow('Failed to generate token');
 
     expect(mockImportKey).toHaveBeenCalled();
@@ -193,15 +193,28 @@ describe('JwtService', () => {
   it('should sanitize the public key', async () => {
     const deviceId = 'device123';
     const publicKey = 'mock\nPublic\nKey\n';
-    const privateKey = 'mockPrivateKey';
+    const privateKey = `-----BEGIN PRIVATE KEY-----\n${btoa('mockPrivateKey')}\n-----END PRIVATE KEY-----`;
     const clientId = 'client123';
+    const kid = 'key123';
 
-    await service.generateToken(deviceId, publicKey, privateKey, clientId);
+    await service.generateToken(deviceId, publicKey, privateKey, clientId, kid);
 
     expect((await import('jose')).SignJWT).toHaveBeenCalledWith(
       expect.objectContaining({
         publicKey: 'mockPublicKey', // Sanitized public key
       })
     );
+  });
+
+  it('should handle invalid Base64 strings gracefully', async () => {
+    const deviceId = 'device123';
+    const publicKey = 'invalid_base64'; // Invalid Base64 string
+    const privateKey = `-----BEGIN PRIVATE KEY-----\n${btoa('mockPrivateKey')}\n-----END PRIVATE KEY-----`;
+    const clientId = 'client123';
+    const kid = 'key123';
+
+    await expect(
+      service.generateToken(deviceId, publicKey, privateKey, clientId, kid)
+    ).rejects.toThrow('Failed to generate token');
   });
 });
