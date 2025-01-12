@@ -106,6 +106,13 @@ describe('CodeChallengeService', () => {
 
 // Mock crypto and its subtle API
 global.crypto = {
+  getRandomValues: (arr: Uint8Array) => {
+    // Fill the array with random values (mocked)
+    for (let i = 0; i < arr.length; i++) {
+      arr[i] = Math.floor(Math.random() * 256); // Random byte values
+    }
+    return arr;
+  },
   subtle: {
     digest: jest.fn(async (algorithm, data) => {
       // Mock a dummy hash (ArrayBuffer with 32 bytes)
