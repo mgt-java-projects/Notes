@@ -102,3 +102,14 @@ describe('CodeChallengeService', () => {
     });
   });
 });
+
+
+// Mock crypto and its subtle API
+global.crypto = {
+  subtle: {
+    digest: jest.fn(async (algorithm, data) => {
+      // Mock a dummy hash (ArrayBuffer with 32 bytes)
+      return new Uint8Array(32).buffer;
+    }),
+  },
+} as Crypto;
