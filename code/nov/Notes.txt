@@ -9,3 +9,45 @@ Compliance: Many regulations and corporate policies require sensitive keys to be
 In most architectures, jsonwebtoken is used on the server to issue (sign) and verify JWTs, while the client (browser) only reads and sends tokens. If you need JWT signing in a front-end environment, a more browser-compatible library like jose can be used, although the security considerations remain the same—exposing private keys client-side is typically a bad idea.
 
 
+// Feature state interface
+export interface FeatureState {
+  featureOne: fromFeatureOne.FeatureOneState;
+  featureTwo: fromFeatureTwo.FeatureTwoState;
+}
+
+// Initial state for the feature
+export const initialFeatureState: FeatureState = {
+  featureOne: fromFeatureOne.initialState,
+  featureTwo: fromFeatureTwo.initialState,
+};
+
+
+
+this.store.dispatch(clearAllState());
+
+StoreModule.forFeature('feature', reducers, { metaReducers }),
+
+
+-----
+
+import { MetaReducer } from '@ngrx/store';
+import { clearAllState } from './feature.actions';
+
+export function clearStateMetaReducer(reducer: any): any {
+  return (state: any, action: any) => {
+    // Reset the state to undefined when clearAllState is dispatched
+    if (action.type === clearAllState.type) {
+      state = initialFeatureState;
+    }
+    return reducer(state, action);
+  };
+}
+
+export const metaReducers: MetaReducer<any>[] = [clearStateMetaReducer];
+
+
+----
+import { createAction } from '@ngrx/store';
+
+// Action to clear all feature states
+export const clearAllState = createAction('[Feature] Clear All State');
