@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
-import { IsamRefreshSessionTokenService } from './wasam-refresh-session-token.service';
+import { WasamRefreshSessionTokenService } from './wasam-refresh-session-token.service';
 import { SessionTokenStorageService } from './session-token-storage.service';
 import { CpxHttpClientService } from '../http-client.service';
 import { EnvironmentService } from '../infra/environment.service';
-import { PlatformInfoService } from '@bmo/freddy/platform/info/';
+
 import { of, throwError } from 'rxjs';
 
-describe('IsamRefreshSessionTokenService', () => {
-  let service: IsamRefreshSessionTokenService;
+describe('WasamRefreshSessionTokenService', () => {
+  let service: WasamRefreshSessionTokenService;
   let sessionTokenStorageService: jest.Mocked<SessionTokenStorageService>;
   let cpxHttpClientService: jest.Mocked<CpxHttpClientService>;
   let environmentService: jest.Mocked<EnvironmentService>;
@@ -24,7 +24,7 @@ describe('IsamRefreshSessionTokenService', () => {
     } as unknown as jest.Mocked<CpxHttpClientService>;
 
     environmentService = {
-      getIsamHost: jest.fn(),
+      getWasamHost: jest.fn(),
     } as unknown as jest.Mocked<EnvironmentService>;
 
     platformInfoService = {
@@ -34,7 +34,7 @@ describe('IsamRefreshSessionTokenService', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        IsamRefreshSessionTokenService,
+        WasamRefreshSessionTokenService,
         { provide: SessionTokenStorageService, useValue: sessionTokenStorageService },
         { provide: CpxHttpClientService, useValue: cpxHttpClientService },
         { provide: EnvironmentService, useValue: environmentService },
@@ -42,7 +42,7 @@ describe('IsamRefreshSessionTokenService', () => {
       ],
     });
 
-    service = TestBed.inject(IsamRefreshSessionTokenService);
+    service = TestBed.inject(WasamRefreshSessionTokenService);
   });
 
   it('should be created', () => {
@@ -76,16 +76,16 @@ describe('IsamRefreshSessionTokenService', () => {
     });
   });
 
-  describe('getIsamHost', () => {
-    it('should return ISAM host if platform is native', () => {
+  describe('getWasamHost', () => {
+    it('should return WASAM host if platform is native', () => {
       platformInfoService.isNative = true;
-      environmentService.getIsamHost.mockReturnValue('https://wasam.host');
-      expect(service.getIsamHost()).toBe('https://wasam.host');
+      environmentService.getWasamHost.mockReturnValue('https://wasam.host');
+      expect(service.getWasamHost()).toBe('https://wasam.host');
     });
 
     it('should return an empty string if platform is not native', () => {
       platformInfoService.isNative = false;
-      expect(service.getIsamHost()).toBe('');
+      expect(service.getWasamHost()).toBe('');
     });
   });
 
