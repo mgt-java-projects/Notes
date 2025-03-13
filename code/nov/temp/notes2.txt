@@ -1,56 +1,14 @@
-Business Need & Requirement for MFE-Based Account Opening Feature
-Business Requirement:
-The business wants to maintain one single app in the Google Play Store & Apple App Store.
-A new account opening feature needs to be developed and deployed independently without affecting the existing app.
-The main hybrid app’s source code should remain unchanged, while the new feature should be a separate module.
-The development teams should be able to work independently without dependencies on the main app’s deployment cycle.
-A feature flag in the main app will control the activation/deactivation of the account opening module without requiring a full app update.
-Future enhancements should be scalable without requiring a full app redeployment.
-Why We Chose MFE (Micro Frontend Architecture)?
-Micro Frontend (MFE) allows us to build and deploy the new account opening feature as an independent module while keeping the existing hybrid app intact.
+When running in Micro Frontend (MFE) mode, Angular considers the parent application's angular.json configuration for build-related constraints like maximumError.
 
-Advantages of MFE in Achieving This Goal
-1️⃣ Independent Development & Deployment
-✅ The account opening feature can be built, tested, and deployed separately without modifying or redeploying the existing app.
-✅ Different teams can work autonomously on different features.
-✅ Issues with the account opening feature won’t affect the core app, reducing deployment risks.
+Here’s how it works:
 
-2️⃣ Single App on Play Store & App Store
-✅ The new feature is embedded into the existing app, ensuring that users still see only one app in the store.
-✅ No need to launch a separate app for account opening.
-✅ Business can market a unified digital experience while benefiting from modular development.
+Parent Application (maximumError: 20MB)
 
-3️⃣ Feature Flag Control (On/Off Switch for Account Opening Feature)
-✅ The main app has a feature flag that allows turning the account opening feature ON/OFF dynamically.
-✅ If needed, the feature can be hidden/disabled instantly without requiring an app update from the store.
-✅ Ensures a controlled rollout, allowing gradual releases (A/B Testing, Pilot Launch).
-✅ If an issue arises, the feature can be turned off immediately without affecting other app functionalities.
+Since the parent application is the shell that loads the child MFE, its angular.json settings take precedence during runtime when both are running together.
+Angular’s build and performance budgets are applied at the level where the build happens. Since the parent loads the child MFE dynamically, the parent's budget configuration (20MB) is the effective limit.
+Child MFE (maximumError: 12MB)
 
-4️⃣ Faster Go-to-Market
-✅ Since MFE allows modular development, the account opening feature can be released quickly without waiting for changes in the main app.
-✅ Reduces dependency between teams, making the process more agile.
-✅ The feature flag allows staged rollouts, minimizing production risks.
-
-5️⃣ Better Scalability & Maintainability
-✅ Future enhancements (e.g., loan applications, investment features) can be built as separate MFE modules.
-✅ Each module can be updated or replaced without affecting the rest of the app.
-✅ With feature flags, multiple versions of the feature can be managed easily (e.g., enabling account opening for specific users first).
-
-6️⃣ Seamless User Experience
-✅ The MFE will be embedded in the same hybrid app, ensuring a consistent UI and user experience.
-✅ The user won’t notice the technical separation between the core app and the new feature.
-✅ With the feature flag, specific users or regions can be given early access without impacting all users.
-
-7️⃣ Lower Risk & Better Performance
-✅ Any issue with the new feature does not affect the entire app.
-✅ Only the MFE module can be rolled back or updated independently.
-✅ The feature flag ensures controlled rollouts, reducing risks associated with sudden feature launches.
-
-Final Decision: Why MFE + Feature Flag is the Best Choice?
-✅ One single app in Play Store/App Store, meeting business expectations.
-✅ Independent feature development & deployment for faster release cycles.
-✅ Scalable architecture that allows future enhancements without disrupting the core app.
-✅ Minimal risk and seamless user experience, making it ideal for financial applications.
-✅ Feature Flag ensures instant control, allowing safe feature rollouts and quick deactivation if needed.
-
-This MFE approach with a feature flag ensures that account opening is a fully modular, independent, and scalable feature, while keeping everything under one unified app in the store with full control over activation. 
+When built separately, the child project adheres to its own angular.json settings (12MB).
+However, once integrated into the parent in MFE mode, the child’s bundle becomes part of the overall application runtime and is subject to the parent’s performance budget.
+Conclusion:
+In MFE mode, the parent’s maximumError setting of 20MB will be considered for the entire application at runtime, including the dynamically loaded child MFE.
