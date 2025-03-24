@@ -1,14 +1,5 @@
-When running in Micro Frontend (MFE) mode, Angular considers the parent application's angular.json configuration for build-related constraints like maximumError.
+LPAD stories are often larger and more complex, and in most cases, they end up being completed by the dev team only in the last 2 days of the sprint. This puts pressure on the team and results in QA receiving the items at the very last minute.
 
-Here’s how it works:
+We’d like to move towards a better story breakdown — similar to how the LANO team structures their work. Their approach allows for smaller, manageable pieces to be delivered to QA earlier in the sprint, rather than pushing a bulk of the work at the end.
 
-Parent Application (maximumError: 20MB)
-
-Since the parent application is the shell that loads the child MFE, its angular.json settings take precedence during runtime when both are running together.
-Angular’s build and performance budgets are applied at the level where the build happens. Since the parent loads the child MFE dynamically, the parent's budget configuration (20MB) is the effective limit.
-Child MFE (maximumError: 12MB)
-
-When built separately, the child project adheres to its own angular.json settings (12MB).
-However, once integrated into the parent in MFE mode, the child’s bundle becomes part of the overall application runtime and is subject to the parent’s performance budget.
-Conclusion:
-In MFE mode, the parent’s maximumError setting of 20MB will be considered for the entire application at runtime, including the dynamically loaded child MFE.
+Adopting a similar model will help improve our delivery flow, reduce last-minute pressure, and give QA sufficient time for thorough testing.
