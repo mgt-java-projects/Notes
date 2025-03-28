@@ -27,8 +27,9 @@ This ensures that every team fully understands their responsibilities, deliverab
 However, we observed some challenges in the overall release coordination:
 The overall scope was assumed as one big number, without a clear view of how it's broken down per pod.
 There was a tendency to estimate timelines based on T-shirt sizing, which didn’t always reflect the actual effort or complexity.
-As a result, pressure or follow-up was sometimes directed at the wrong pod, while the actual delay may have been with a different team.
 This led to misaligned expectations, last-minute escalations, and inefficiencies in tracking progress toward the release target.
+As a result, pressure or follow-up was sometimes directed at the wrong pod, while the actual delay may have been with a different team.
+
 
 It would be helpful to track progress at the pod level against their defined scope, and surface delays or blockers more transparently. This way, the right support and attention can be given to the pods that need it, and we can better align on realistic timelines and dependencies.  
 importantly it will really avoid putting pressure to wrong pod instead of focus on slow running pod.
