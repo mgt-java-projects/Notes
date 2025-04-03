@@ -1,1 +1,18 @@
 
+Subject: Release R1 – Business Validation Guide for iOS (TestFlight)
+
+Hi [Recipient's Name],
+
+Sam and I have collaboratively prepared a PowerPoint presentation that outlines the detailed steps and instructions for performing business validation on a physical iOS device using TestFlight for Release R1.
+
+The presentation includes:
+
+Step-by-step guidance
+
+Supporting screenshots for each step
+
+Notes on expected behavior during validation
+
+We kindly request you to review the document and share any feedback or corrections, if needed. Your input will help ensure the validation process is accurate and smooth for everyone involved.
+
+Please let us know if any changes are required or if you have any suggestions for improvement.
