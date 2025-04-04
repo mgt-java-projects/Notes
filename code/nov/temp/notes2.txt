@@ -1,18 +1,7 @@
+I looked at our existing application and noticed that as we start implementing other flows like Credit Card, Student, etc., we may end up making multiple API calls from the UI just to fetch static page data. This could increase the number of network calls significantly as we scale.
 
-Subject: Release R1 – Business Validation Guide for iOS (TestFlight)
+For the EDB flow, it might seem manageable, but it’s a good opportunity to optimize this early so we can leverage a better design approach for static content across all flows.
 
-Hi [Recipient's Name],
+We could consider consolidating data or structuring it more efficiently to reduce repeated calls, improve performance, and keep things maintainable for the long run.
 
-Sam and I have collaboratively prepared a PowerPoint presentation that outlines the detailed steps and instructions for performing business validation on a physical iOS device using TestFlight for Release R1.
-
-The presentation includes:
-
-Step-by-step guidance
-
-Supporting screenshots for each step
-
-Notes on expected behavior during validation
-
-We kindly request you to review the document and share any feedback or corrections, if needed. Your input will help ensure the validation process is accurate and smooth for everyone involved.
-
-Please let us know if any changes are required or if you have any suggestions for improvement.
+Let me know your thought
