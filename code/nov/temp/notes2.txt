@@ -1,7 +1,5 @@
-I looked at our existing application and noticed that as we start implementing other flows like Credit Card, Student, etc., we may end up making multiple API calls from the UI just to fetch static page data. This could increase the number of network calls significantly as we scale.
+I looked at our existing application and noticed that a lot of static data is being used across different flows. As we move forward with implementing flows like Credit Card, Student, and others, this could lead to a growing number of UI-to-API calls just to fetch static page content.
 
-For the EDB flow, it might seem manageable, but it’s a good opportunity to optimize this early so we can leverage a better design approach for static content across all flows.
+While this may seem manageable for the EDB flow, I believe it's a good time to optimize how we handle static data. Designing it efficiently now will help reduce unnecessary network calls, improve performance, and provide a reusable approach for future flows.
 
-We could consider consolidating data or structuring it more efficiently to reduce repeated calls, improve performance, and keep things maintainable for the long run.
-
-Let me know your thought
+Let me know your thoughts — I’m happy to connect and walk through ideas.
