@@ -1,5 +1,2 @@
-I looked at our existing application and noticed that a lot of static data is being used across different flows. As we move forward with implementing flows like Credit Card, Student, and others, this could lead to a growing number of UI-to-API calls just to fetch static page content.
-
-While this may seem manageable for the EDB flow, I believe it's a good time to optimize how we handle static data. Designing it efficiently now will help reduce unnecessary network calls, improve performance, and provide a reusable approach for future flows.
-
-Let me know your thoughts — I’m happy to connect and walk through ideas.
+We have already initiated discussions with the SA team regarding static data caching in this forum over the past few weeks.
+The notes I’ve shared are aligned with that ongoing conversation and are not intended to introduce a new topic.
