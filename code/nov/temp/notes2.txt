@@ -18,3 +18,6 @@ Please make sure to add your items to this page as soon as a decision is made, a
 This will help us in the future if the same or similar issue arises — enabling future team members to either continue the investigation from where we left off, or close the issue based on existing decisions.
 
 Let’s use this page as a shared knowledge base to ensure better continuity and minimize duplicate effort across the team.
+
+
+Known Issues – Decision & Investigation Log
