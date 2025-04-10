@@ -1,15 +1,13 @@
-Development has provided buffer time to support and address any observations raised during QA testing.
+In some cases, leads are actively involved in story estimation, which is valuable for planning.
 
-However, in the current sprint, the team is fully allocated to ongoing development work, leaving limited bandwidth for timely support of QA activities.
+However, it’s important that estimations reflect the actual implementation complexity from a developer’s perspective, rather than the lead’s level of familiarity or comfort with the feature.
 
-In standard Agile practice, it is generally recommended that developers reserve some buffer time within the sprint to support QA, especially during testing phases toward the end of the sprint. This ensures that:
+Estimations should consider:
 
-Bugs and observations can be resolved promptly.
+The experience level of the developer(s) who will work on the story
 
-QA is not blocked or delayed.
+Potential unknowns, integration points, or testing effort
 
-The Definition of Done is met consistently across stories.
+Actual coding, debugging, and support time required
 
-If all developers are fully stretched on new development tasks, it can create a bottleneck for QA, potentially leading to spillovers or lower story completion rates.
-
-It may be helpful to consider allocating a portion of dev capacity specifically for QA support and stabilization, especially in the second half of the sprint.
+Aligning estimations this way ensures more accurate sprint planning and helps avoid underestimation or pressure during execution.
