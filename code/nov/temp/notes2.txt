@@ -1,23 +1,15 @@
-Hi Team,
+Development has provided buffer time to support and address any observations raised during QA testing.
 
-We’ve created a dedicated Confluence page to track known technical issues that currently do not have a solution, but have been discussed with the project team.
+However, in the current sprint, the team is fully allocated to ongoing development work, leaving limited bandwidth for timely support of QA activities.
 
-Each item should include the following:
+In standard Agile practice, it is generally recommended that developers reserve some buffer time within the sprint to support QA, especially during testing phases toward the end of the sprint. This ensures that:
 
-Full description of the issue
+Bugs and observations can be resolved promptly.
 
-Summary of discussions or findings
+QA is not blocked or delayed.
 
-Any context or background
+The Definition of Done is met consistently across stories.
 
-Current status
+If all developers are fully stretched on new development tasks, it can create a bottleneck for QA, potentially leading to spillovers or lower story completion rates.
 
-
-Please make sure to add your items to this page as soon as a decision is made, and include complete details and technical context.
-
-This will help us in the future if the same or similar issue arises — enabling future team members to either continue the investigation from where we left off, or close the issue based on existing decisions.
-
-Let’s use this page as a shared knowledge base to ensure better continuity and minimize duplicate effort across the team.
-
-
-Known Issues – Decision & Investigation Log
+It may be helpful to consider allocating a portion of dev capacity specifically for QA support and stabilization, especially in the second half of the sprint.
