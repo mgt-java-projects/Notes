@@ -1,13 +1,23 @@
-In some cases, leads are actively involved in story estimation, which is valuable for planning.
+R82 Release Plan for Launch
+R82 Contents:
 
-However, it’s important that estimations reflect the actual implementation complexity from a developer’s perspective, rather than the lead’s level of familiarity or comfort with the feature.
+Current CDB Production Code
+plus
 
-Estimations should consider:
+Launch Code:
 
-The experience level of the developer(s) who will work on the story
+Introduce feature toggle flag in config.json (add new variable)
 
-Potential unknowns, integration points, or testing effort
+Implement existing customer flag logic (CDB UI code change)
 
-Actual coding, debugging, and support time required
+Deployment Plan: QA5-blue
+Objective:
+Deploy R82 into QA5-blue for validation.
 
-Aligning estimations this way ensures more accurate sprint planning and helps avoid underestimation or pressure during execution.
+R82 Validation Checklist:
+
+Ensure existing CDB production functionality is not broken
+(Validated by CDB QA and signed off)
+
+Verify that the launch code is successfully integrated in R82
+(Validated by Launch QA with Dev Support and signed off)
