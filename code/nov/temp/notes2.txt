@@ -1,23 +1,15 @@
-R82 Release Plan for Launch
-R82 Contents:
+Hi [PO's Name],
 
-Current CDB Production Code
-plus
+To support better planning and alignment within the Agile team, could you please walk us through the Launch Pilot scope (LPAD + LANO)?
 
-Launch Code:
+It would be helpful to understand:
 
-Introduce feature toggle flag in config.json (add new variable)
+What is the full scope of the pilot assigned to the Launch team?
 
-Implement existing customer flag logic (CDB UI code change)
+What has been completed so far, and what is still pending?
 
-Deployment Plan: QA5-blue
-Objective:
-Deploy R82 into QA5-blue for validation.
+Epic list with estimated sizes, if available
 
-R82 Validation Checklist:
+Tentative release timeline and number of sprints remaining
 
-Ensure existing CDB production functionality is not broken
-(Validated by CDB QA and signed off)
-
-Verify that the launch code is successfully integrated in R82
-(Validated by Launch QA with Dev Support and signed off)
+This will help the team stay aligned and ensure we're focused on the right priorities as we move forward.
