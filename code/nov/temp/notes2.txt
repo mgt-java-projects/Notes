@@ -23,3 +23,5 @@ How do you implement a global error handling mechanism in Angular?
 What are route guards and resolvers in Angular routing? How and when do you use them?
 
 What strategies do you follow to optimize Angular applications that make frequent or heavy API calls?
+
+What is NgRx, and how does it manage state? Explain Store, Actions, Reducers, Selectors, and Effects.
