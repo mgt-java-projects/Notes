@@ -1,27 +1,9 @@
-What is the difference between using hidden and *ngIf in Angular for conditionally rendering elements?
+Hi Henry,
 
-How do you implement communication from a parent component to a child component in Angular?
+I will be on vacation from May 20 to June 13 to visit my family in India.
 
-How do independent components communicate in Angular using Subject and BehaviorSubject?
+I am available to work remotely from India for one week during this period, from May 20 to May 30.
+Please let me know if I get approval to carry my office laptop. If not, I will plan accordingly and not take the laptop with me.
 
-Can you describe any custom directives you have created? What was the use case?
-
-What is the difference between a viewport and a media query in responsive web design?
-
-How does sessionStorage differ from localStorage in terms of data persistence and use cases?
-
-How can you globally capture and handle HTTP errors in an Angular application?
-
-In a scenario where data needs to persist after a page refresh, when would you choose localStorage over other storage mechanisms?
-
-How do you make and manage multiple API calls simultaneously in Angular?
-
-Can you provide an example of using an HTTP interceptor in Angular?
-
-How do you implement a global error handling mechanism in Angular?
-
-What are route guards and resolvers in Angular routing? How and when do you use them?
-
-What strategies do you follow to optimize Angular applications that make frequent or heavy API calls?
-
-What is NgRx, and how does it manage state? Explain Store, Actions, Reducers, Selectors, and Effects.
+Thank you,
+[Your Name]
