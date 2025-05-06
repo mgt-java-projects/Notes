@@ -1,9 +1,66 @@
-Hi Henry,
+True IDV Integration – Implementation Plan
 
-I will be on vacation from May 20 to June 13 to visit my family in India.
+1. Terminate ISAM Session
 
-I am available to work remotely from India for one week during this period, from May 20 to May 30.
-Please let me know if I get approval to carry my office laptop. If not, I will plan accordingly and not take the laptop with me.
+Endpoint:
+GET /aac/sps/apiauthsvc/policy/idp-logout
 
-Thank you,
-[Your Name]
+2. Create New ISAM Session
+
+This step is required to populate the ecifId and include it in the JWT access token.
+
+Generate a new Access and Refresh Token
+
+Replace the old Access and Refresh Token
+
+
+3. Route Call to True IDV MFE
+
+Path:
+/launch-true-id
+
+Angular Route Parameters:
+
+channelId = LAUMOB
+
+appId = <Application ID created during KYC adjudication>
+
+token = <JWT Access Token including ecifId>
+
+lang = f/en
+
+
+4. Route Back to Launch UI
+
+Path:
+/launch-openaccount/submit/true-idv-page-handover/
+
+
+
+Task List
+
+Task 1: RegisteredDevice API
+Use RegisteredDevice API to retrieve ecifId and add it to the API response.
+Endpoint:
+/api/dst/session-dialogue/onboarding-journey/registered-device/
+
+Task 2: ISAM – Extract ecifId
+Extract ecifId from the device registration response using the public key and UUID, and store it in session.
+
+Task 3: ISAM – Session Mapper
+Use the session mapper to retrieve ecifId and include it in the access token.
+
+Task 4: True IDV MFE – Part 1
+Modify MFE repo to fetch encryption keys and implement token integration API using the latest access token and ecifId.
+
+Task 5: True IDV MFE – Part 2
+Implement routing logic to navigate back to Launch UI after IDV completion.
+
+Task 6: Launch UI – Session Termination
+Terminate the ISAM session using the logout endpoint.
+
+Task 7: Implement Route to True IDV
+Implement route in the Launch UI to call the True IDV endpoint in CDB repo, pass parameters, and deploy to QA1-remoteEntry.js.
+
+Task 8: Handle Page Handover Component
+Update true-idv-page-handover component to show a spinner and re-trigger the adjudication operation to fetch status.
