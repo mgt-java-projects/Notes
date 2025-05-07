@@ -1,36 +1,49 @@
-Implement changes in the True IDV MFE repository to navigate back to the Launch UI repository using the following endpoint:
+Hi Everyone,
 
-{
-  Status: <status_code>,
-  Application_id: <application_id>
-}
+I'm pleased to share that the L UI has successfully completed the migration from on-prem to the SaaS Artifactory setup.
 
-Success: Indicates IDV was completed successfully.
+The following key action items were accomplished as part of this migration activity:
 
-Error: Skip returning to launch, due to validation failure, timeout, or other issues.
+Fredd repo migration to SaaS for the latest version at the branch
 
-Enhance the true-idv-page-handover component to display a spinner and retry key adjudication logic by invoking the adjudication API to fetch the current status.
+Fredd SaaS pipeline migration
 
+SaaS Ansible template creation for:
 
-Response Handling in Launch UI:
+L UI
 
-Success:
+L Config
 
-Re-initiate the KYC adjudication API.
+ADO Pipeline setup for L UI with SaaS template integration and Artifactory setup
 
-If adjudication succeeds:
+ADO Pipeline upgrade for L Config with SaaS template integration and Artifactory setup
 
-Proceed with account opening success logic.
+Local machine setup:
 
-Redirect to the Branch UI.
+Access requested for Artifactory repositories:
 
-Error:
+-npm-Snapshots
 
-Option 1:
-Re-initiate the KYC adjudication API. If adjudication fails, fallback to:
+-npm-Snapshots
 
-Redirect to the Branch UI.
+SaaS setup completed on developers' machines:
 
-Option 2 (Default):
+Tamil
 
-Directly redirect to the Branch UI.
+Ram
+
+Preparation of detailed documentation for local setup
+
+Special Acknowledgements:
+
+A heartfelt thanks to Kuu for the detailed walkthrough of the SaaS migration, providing essential documentation, and offering continuous support — your contribution was key to this success.
+
+Sincere thanks to Rag for your work on SaaS template creation and your active support in testing and resolving issues.
+
+Appreciation to Imma for investigating and resolving ADO pipeline issues — your triage efforts were instrumental.
+
+Thank you to Priyanka for setting up the ADO pipeline efficiently and supporting the integration efforts.
+
+Special thanks to the Freddy team, especially Ran, for handling the Freddy repo migration and ensuring a smooth transition.
+
+It was truly a team effort, and I deeply appreciate everyone's collaboration in successfully completing this migration.
