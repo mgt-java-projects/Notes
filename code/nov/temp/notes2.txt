@@ -1,66 +1,36 @@
-True IDV Integration – Implementation Plan
+Implement changes in the True IDV MFE repository to navigate back to the Launch UI repository using the following endpoint:
 
-1. Terminate ISAM Session
+{
+  Status: <status_code>,
+  Application_id: <application_id>
+}
 
-Endpoint:
-GET /aac/sps/apiauthsvc/policy/idp-logout
+Success: Indicates IDV was completed successfully.
 
-2. Create New ISAM Session
+Error: Skip returning to launch, due to validation failure, timeout, or other issues.
 
-This step is required to populate the ecifId and include it in the JWT access token.
-
-Generate a new Access and Refresh Token
-
-Replace the old Access and Refresh Token
+Enhance the true-idv-page-handover component to display a spinner and retry key adjudication logic by invoking the adjudication API to fetch the current status.
 
 
-3. Route Call to True IDV MFE
+Response Handling in Launch UI:
 
-Path:
-/launch-true-id
+Success:
 
-Angular Route Parameters:
+Re-initiate the KYC adjudication API.
 
-channelId = LAUMOB
+If adjudication succeeds:
 
-appId = <Application ID created during KYC adjudication>
+Proceed with account opening success logic.
 
-token = <JWT Access Token including ecifId>
+Redirect to the Branch UI.
 
-lang = f/en
+Error:
 
+Option 1:
+Re-initiate the KYC adjudication API. If adjudication fails, fallback to:
 
-4. Route Back to Launch UI
+Redirect to the Branch UI.
 
-Path:
-/launch-openaccount/submit/true-idv-page-handover/
+Option 2 (Default):
 
-
-
-Task List
-
-Task 1: RegisteredDevice API
-Use RegisteredDevice API to retrieve ecifId and add it to the API response.
-Endpoint:
-/api/dst/session-dialogue/onboarding-journey/registered-device/
-
-Task 2: ISAM – Extract ecifId
-Extract ecifId from the device registration response using the public key and UUID, and store it in session.
-
-Task 3: ISAM – Session Mapper
-Use the session mapper to retrieve ecifId and include it in the access token.
-
-Task 4: True IDV MFE – Part 1
-Modify MFE repo to fetch encryption keys and implement token integration API using the latest access token and ecifId.
-
-Task 5: True IDV MFE – Part 2
-Implement routing logic to navigate back to Launch UI after IDV completion.
-
-Task 6: Launch UI – Session Termination
-Terminate the ISAM session using the logout endpoint.
-
-Task 7: Implement Route to True IDV
-Implement route in the Launch UI to call the True IDV endpoint in CDB repo, pass parameters, and deploy to QA1-remoteEntry.js.
-
-Task 8: Handle Page Handover Component
-Update true-idv-page-handover component to show a spinner and re-trigger the adjudication operation to fetch status.
+Directly redirect to the Branch UI.
