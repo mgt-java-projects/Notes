@@ -1,6 +1,1 @@
-I want to give a big shoutout to Mahyar for his extraordinary work during the last sprint. He independently took ownership of the Brandify API integration and investigation, navigating through a complex task with minimal support and successfully delivering it. Truly an excellent effort!
-
-Also, a huge appreciation to Hari for his strong contribution in implementing encryption for Launch UI API calls. His dedication and attention to detail made a significant impact on securing our application.
-
-Great work, both of you!
 
