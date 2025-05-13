@@ -1,39 +1,15 @@
-<div class="page-area" id="pageArea">
-  <div class="book-page-wrapper" [class.turn-page]="isTurning">
-    <div class="page-data" id="pageData" [ngClass]="pageDataMinHeightClass">
-      <router-outlet (activate)="resetFlip()"></router-outlet>
-    </div>
-
-    <div class="next-button-container" id="nextButtonContainer">
-      <div class="next-button">
-        <button (click)="triggerPageTurn()">submit</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 .book-page-wrapper {
-  transition: transform 0.6s ease-in-out;
-  transform-origin: left center;
-  backface-visibility: hidden;
+  transition: transform 0.4s ease-in-out;
+  transform: translateX(0);
+  will-change: transform;
 }
 
 .turn-page {
-  transform: rotateY(-90deg); // emulate book turning left
+  transform: translateX(-100%); // slide to left
 }
 
-
-isTurning = false;
-
-triggerPageTurn() {
-  this.isTurning = true;
-
-  setTimeout(() => {
-    // Navigate after animation
-    this.router.navigate(['/next-page']);
-  }, 600); // Match with CSS transition duration
-}
-
-resetFlip() {
-  this.isTurning = false;
+.book-page-wrapper {
+  position: relative;
+  z-index: 1;
+  box-shadow: inset -20px 0 20px -10px rgba(0, 0, 0, 0.15);
 }
