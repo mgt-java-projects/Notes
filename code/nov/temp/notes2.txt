@@ -1,15 +1,14 @@
 import {
-  trigger,
-  transition,
-  style,
-  query,
   animate,
-  group
+  group,
+  query,
+  style,
+  transition,
+  trigger
 } from '@angular/animations';
 
 export const slideRouteAnimation = trigger('routeAnimation', [
-  // FORWARD (slide left)
-  transition('* => forward-*', [
+  transition('* => *', [
     style({ position: 'relative' }),
     query(':enter, :leave', [
       style({
@@ -17,50 +16,43 @@ export const slideRouteAnimation = trigger('routeAnimation', [
         width: '100%',
         height: '100%',
         top: 0,
-        left: 0
+        left: 0,
+        overflow: 'hidden'
       })
     ], { optional: true }),
 
     group([
+      // Leave animation — direction controlled by data attribute
       query(':leave', [
-        animate('400ms ease-in-out', style({ transform: 'translateX(-100%)' }))
-      ], { optional: true }),
+        // We'll read the direction from route data or fallback
+        style({ zIndex: 2 }),
+        animate('400ms ease-in-out', style({
+          transform: 'translateX({{leaveX}}%)'
+        }))
+      ], {
+        optional: true,
+        params: { leaveX: -100 } // default forward
+      }),
 
+      // Enter animation
       query(':enter', [
-        style({ transform: 'translateX(100%)' }),
-        animate('400ms ease-in-out', style({ transform: 'translateX(0%)' }))
-      ], { optional: true })
-    ])
-  ]),
-
-  // BACKWARD (slide right)
-  transition('* => back-*', [
-    style({ position: 'relative' }),
-    query(':enter, :leave', [
-      style({
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        top: 0,
-        left: 0
+        style({ transform: 'translateX({{enterX}}%)', zIndex: 1 }),
+        animate('400ms ease-in-out', style({
+          transform: 'translateX(0%)'
+        }))
+      ], {
+        optional: true,
+        params: { enterX: 100 } // default forward
       })
-    ], { optional: true }),
-
-    group([
-      query(':leave', [
-        animate('400ms ease-in-out', style({ transform: 'translateX(100%)' }))
-      ], { optional: true }),
-
-      query(':enter', [
-        style({ transform: 'translateX(-100%)' }),
-        animate('400ms ease-in-out', style({ transform: 'translateX(0%)' }))
-      ], { optional: true })
     ])
   ])
 ]);
 
 
+ const enterX = direction === 'back' ? -100 : 100;
+    const leaveX = direction === 'back' ? 100 : -100;
 
- const direction = this.navDir.isBackNavigation() ? 'back' : 'forward';
-    const key = outlet?.activatedRouteData?.['animation'];
-    return `${direction}-${key}`;
+    return {
+      value: outlet?.activatedRouteData?.['animation'] ?? outlet?.activatedRoute?.routeConfig?.path,
+      params: { enterX, leaveX }
+    };
