@@ -1,88 +1,64 @@
-<div class="page-area">
-  <div [@routeAnimation]="prepareRoute(outlet)" class="page-content">
-    <div class="page-data" [ngClass]="pageDataMinHeightClass">
-      <router-outlet #outlet="outlet"></router-outlet>
-    </div>
-
-    <div class="next-button-container">
-      <div class="next-button">
-        <button (click)="slideAndNavigate()">Submit</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-import { Component } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
-import { slideRouteAnimation } from './animations';
-
-@Component({
-  selector: 'app-parent',
-  templateUrl: './parent.component.html',
-  styleUrls: ['./parent.component.scss'],
-  animations: [slideRouteAnimation]
-})
-export class ParentComponent {
-  constructor(private router: Router) {}
-
-  slideAndNavigate() {
-    this.router.navigate(['/next-page']); // Use your real route
-  }
-
-  prepareRoute(outlet: RouterOutlet) {
-    return outlet?.activatedRouteData?.['animation'];
-  }
-}
-
-const routes: Routes = [
-  {
-    path: 'page-one',
-    component: PageOneComponent,
-    data: { animation: 'PageOne' }
-  },
-  {
-    path: 'next-page',
-    component: PageTwoComponent,
-    data: { animation: 'PageTwo' }
-  }
-];
-
-
-
 import {
-  trigger,
-  transition,
-  style,
-  query,
   animate,
-  group
+  group,
+  query,
+  style,
+  transition,
+  trigger
 } from '@angular/animations';
 
 export const slideRouteAnimation = trigger('routeAnimation', [
-  transition('* <=> *', [
+  transition('forward => *', [
+    style({ position: 'relative' }),
     query(':enter, :leave', [
       style({
         position: 'absolute',
         width: '100%',
+        height: '100%',
         top: 0,
         left: 0
       })
     ], { optional: true }),
 
     group([
-      // Leave page goes left
       query(':leave', [
         animate('400ms ease-in-out', style({ transform: 'translateX(-100%)' }))
       ], { optional: true }),
 
-      // Enter page comes from right
       query(':enter', [
         style({ transform: 'translateX(100%)' }),
         animate('400ms ease-in-out', style({ transform: 'translateX(0%)' }))
       ], { optional: true })
     ])
+  ]),
+
+  transition('back => *', [
+    style({ position: 'relative' }),
+    query(':enter, :leave', [
+      style({
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0
+      })
+    ], { optional: true }),
+
+    group([
+      query(':leave', [
+        animate('400ms ease-in-out', style({ transform: 'translateX(100%)' }))
+      ], { optional: true }),
+
+      query(':enter', [
+        style({ transform: 'translateX(-100%)' }),
+        animate('400ms ease-in-out', style({ transform: 'translateX(0%)' }))
+      ], { optional: true })
+    ])
   ])
 ]);
+
+
+
 
 
 .page-area {
@@ -93,5 +69,15 @@ export const slideRouteAnimation = trigger('routeAnimation', [
 
 .page-content {
   position: relative;
+  width: 100%;
   height: 100%;
+  background: #fff;
 }
+
+.page-data {
+  padding: 1rem;
+}
+
+
+
+ return this.navDir.isBackNavigation() ? 'back' : 'forward';
