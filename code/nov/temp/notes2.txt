@@ -1,15 +1,43 @@
-.book-page-wrapper {
+<div class="page-area">
+  <div class="page-content" [class.slide-out]="isSlidingOut">
+    <div class="page-data" [ngClass]="pageDataMinHeightClass">
+      <router-outlet (activate)="resetSlide()"></router-outlet>
+    </div>
+
+    <div class="next-button-container">
+      <div class="next-button">
+        <button (click)="slideAndNavigate()">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+.page-area {
+  overflow: hidden;
+  position: relative;
+}
+
+.page-content {
   transition: transform 0.4s ease-in-out;
   transform: translateX(0);
   will-change: transform;
 }
 
-.turn-page {
-  transform: translateX(-100%); // slide to left
+.page-content.slide-out {
+  transform: translateX(-100%);
 }
 
-.book-page-wrapper {
-  position: relative;
-  z-index: 1;
-  box-shadow: inset -20px 0 20px -10px rgba(0, 0, 0, 0.15);
+isSlidingOut = false;
+
+slideAndNavigate() {
+  this.isSlidingOut = true;
+
+  setTimeout(() => {
+    this.router.navigate(['/next-page']);
+  }, 400); // Must match CSS transition duration
+}
+
+resetSlide() {
+  this.isSlidingOut = false;
 }
