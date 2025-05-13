@@ -1,7 +1,7 @@
 <div class="page-area">
-  <div class="page-content" [class.slide-out]="isSlidingOut">
+  <div [@routeAnimation]="prepareRoute(outlet)" class="page-content">
     <div class="page-data" [ngClass]="pageDataMinHeightClass">
-      <router-outlet (activate)="resetSlide()"></router-outlet>
+      <router-outlet #outlet="outlet"></router-outlet>
     </div>
 
     <div class="next-button-container">
@@ -12,32 +12,86 @@
   </div>
 </div>
 
+import { Component } from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
+import { slideRouteAnimation } from './animations';
+
+@Component({
+  selector: 'app-parent',
+  templateUrl: './parent.component.html',
+  styleUrls: ['./parent.component.scss'],
+  animations: [slideRouteAnimation]
+})
+export class ParentComponent {
+  constructor(private router: Router) {}
+
+  slideAndNavigate() {
+    this.router.navigate(['/next-page']); // Use your real route
+  }
+
+  prepareRoute(outlet: RouterOutlet) {
+    return outlet?.activatedRouteData?.['animation'];
+  }
+}
+
+const routes: Routes = [
+  {
+    path: 'page-one',
+    component: PageOneComponent,
+    data: { animation: 'PageOne' }
+  },
+  {
+    path: 'next-page',
+    component: PageTwoComponent,
+    data: { animation: 'PageTwo' }
+  }
+];
+
+
+
+import {
+  trigger,
+  transition,
+  style,
+  query,
+  animate,
+  group
+} from '@angular/animations';
+
+export const slideRouteAnimation = trigger('routeAnimation', [
+  transition('* <=> *', [
+    query(':enter, :leave', [
+      style({
+        position: 'absolute',
+        width: '100%',
+        top: 0,
+        left: 0
+      })
+    ], { optional: true }),
+
+    group([
+      // Leave page goes left
+      query(':leave', [
+        animate('400ms ease-in-out', style({ transform: 'translateX(-100%)' }))
+      ], { optional: true }),
+
+      // Enter page comes from right
+      query(':enter', [
+        style({ transform: 'translateX(100%)' }),
+        animate('400ms ease-in-out', style({ transform: 'translateX(0%)' }))
+      ], { optional: true })
+    ])
+  ])
+]);
+
 
 .page-area {
   overflow: hidden;
   position: relative;
+  height: 100%;
 }
 
 .page-content {
-  transition: transform 0.4s ease-in-out;
-  transform: translateX(0);
-  will-change: transform;
-}
-
-.page-content.slide-out {
-  transform: translateX(-100%);
-}
-
-isSlidingOut = false;
-
-slideAndNavigate() {
-  this.isSlidingOut = true;
-
-  setTimeout(() => {
-    this.router.navigate(['/next-page']);
-  }, 400); // Must match CSS transition duration
-}
-
-resetSlide() {
-  this.isSlidingOut = false;
+  position: relative;
+  height: 100%;
 }
